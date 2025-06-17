@@ -20,7 +20,7 @@ export const getUserLocation = async () => {
     lati = latitude;
     longi = longitude;
 
-    console.log("Location:", latitude, longitude);
+    // console.log("Location:", latitude, longitude);
 
     const res = await Location.reverseGeocodeAsync({
       latitude,

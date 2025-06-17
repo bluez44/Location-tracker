@@ -1,12 +1,13 @@
 import { udpateLocation } from "@/api";
 import useLocation from "@/hook/useLocation";
 import { getUserLocation } from "@/utils/location";
+import { useEffect } from "react";
 import { Linking, Text, TouchableOpacity, View } from "react-native";
 
 export default function Index() {
   const { latitude, longitude, location, errorMessage } = useLocation(10000);
 
-  console.log("Current location:", location);
+  // console.log("Current location:", location);
 
   // useEffect(() => {
   //   const res = udpateLocation(latitude, longitude, location)
@@ -33,6 +34,21 @@ export default function Index() {
     subregion,
     timezone,
   } = location?.[0] || {};
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      console.log("Saving location...");
+      udpateLocation(latitude, longitude, location)
+        .then((res) => {
+          console.log("Location updated successfully:", res);
+        })
+        .catch((error) => {
+          console.error("Error updating location:", error);
+        });
+    }, 10000); // Update every 10 seconds
+
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <View
@@ -110,7 +126,7 @@ export default function Index() {
                 console.log("Location updated successfully:", res);
               })
               .catch((error) => {
-                console.error("Error updating location:", error);
+                console.error("Error updating location22:", error);
               });
           }}
         >

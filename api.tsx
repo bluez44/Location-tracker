@@ -10,12 +10,27 @@ const instance = axios.default.create({
 export const udpateLocation = async (
   latitude: number | null,
   longitude: number | null,
-  location: Location.LocationGeocodedAddress
+  location: Location.LocationObject | any
 ) => {
   try {
     const timestamp = new Date().toISOString();
-    // console.log("Updating location:", latitude, longitude, location, timestamp);
+    // console.log("Updating location api:", latitude, longitude, timestamp);
     const userId = 1; // Replace with actual user ID if needed
+    const {
+      city,
+      country,
+      district,
+      formattedAddress,
+      isoCountryCode,
+      name,
+      postalCode,
+      region,
+      street,
+      streetNumber,
+      subregion,
+      timezone,
+    } = location?.[0] || {};
+
     if (latitude === null || longitude === null) {
       return;
     }
@@ -24,7 +39,20 @@ export const udpateLocation = async (
       latitude,
       longitude,
       timestamp,
+      city,
+      country,
+      district,
+      formattedAddress,
+      isoCountryCode,
+      name,
+      postalCode,
+      region,
+      street,
+      streetNumber,
+      subregion,
+      timezone,
     });
+
     return response.data;
   } catch (error) {
     console.error("Error updating location:", error);
