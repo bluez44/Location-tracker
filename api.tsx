@@ -13,7 +13,7 @@ export const udpateLocation = async (
   location: Location.LocationObject | any
 ) => {
   try {
-    const timestamp = new Date().toISOString();
+    const timestamp = new Date().toString();
     // console.log("Updating location api:", latitude, longitude, timestamp);
     const userId = 1; // Replace with actual user ID if needed
     const {

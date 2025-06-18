@@ -22,8 +22,8 @@ const useLocation = (timer: number = 0) => {
 
   useEffect(() => {
     if (timer > 0) {
-      const interval = setInterval(() => {
-        getUserLocation().then((res) => {
+      const interval = setInterval(async () => {
+        await getUserLocation().then((res) => {
           if (res) {
             setLatitude(res.lati);
             setLongitude(res.longi);

@@ -1,24 +1,16 @@
 import { udpateLocation } from "@/api";
+import PermissionsButton from "@/backgroundApp/locationTask";
+import * as ExpoLocation from "expo-location";
 import useLocation from "@/hook/useLocation";
 import { getUserLocation } from "@/utils/location";
-import { useEffect } from "react";
+import { useLayoutEffect, useState } from "react";
 import { Linking, Text, TouchableOpacity, View } from "react-native";
 
 export default function Index() {
   const { latitude, longitude, location, errorMessage } = useLocation(10000);
-
-  // console.log("Current location:", location);
-
-  // useEffect(() => {
-  //   const res = udpateLocation(latitude, longitude, location)
-  //     .then((res) => {
-  //       console.log("Location updated successfully:", res);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error updating location:", error);
-  //     });
-  //   console.log("Location update response:", res);
-  // }, [location, errorMessage, latitude, longitude]);
+  const [timeCounter, setTimeCounter] = useState(10);
+  const [updateDate, setUpdateDate] = useState(new Date());
+  const [resObj, setResObj] = useState<any>(null);
 
   const {
     city,
@@ -35,20 +27,46 @@ export default function Index() {
     timezone,
   } = location?.[0] || {};
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      console.log("Saving location...");
-      udpateLocation(latitude, longitude, location)
-        .then((res) => {
-          console.log("Location updated successfully:", res);
-        })
-        .catch((error) => {
-          console.error("Error updating location:", error);
-        });
-    }, 10000); // Update every 10 seconds
+  // console.log("Location data:", {
+  //   latitude,
+  //   longitude,
+  //   timeCounter,
+  // });
 
-    return () => clearInterval(timer);
-  }, []);
+  useLayoutEffect(() => {
+    if (!latitude || !longitude || !location) {
+      console.log("Waiting for location data...");
+      return;
+    }
+
+    console.log("Starting location update timer...", latitude, longitude);
+
+    // console.log("Saving location...");
+    udpateLocation(latitude, longitude, location)
+      .then((res) => {
+        console.log("Location updated successfully:", res, latitude, longitude);
+        setResObj(res);
+        setUpdateDate(new Date());
+        setTimeCounter(10); // Reset the counter to 10 seconds
+      })
+      .catch((error) => {
+        console.error("Error updating location:", error);
+      });
+  }, [latitude, longitude, location]);
+
+  useLayoutEffect(() => {
+    const interval = setInterval(() => {
+      setTimeCounter((prev) => {
+        if (prev <= 0) {
+          clearInterval(interval);
+          return 10; // Reset to 10 seconds
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timeCounter]);
 
   return (
     <View
@@ -120,10 +138,13 @@ export default function Index() {
             textDecorationLine: "underline",
           }}
           onPress={() => {
-            console.log("Updating location...");
+            // console.log("Updating location...");
             udpateLocation(latitude, longitude, location)
               .then((res) => {
                 console.log("Location updated successfully:", res);
+                setResObj(res);
+                setUpdateDate(new Date());
+                setTimeCounter(10); // Reset the counter to 10 seconds
               })
               .catch((error) => {
                 console.error("Error updating location22:", error);
@@ -133,6 +154,22 @@ export default function Index() {
           Update location
         </Text>
       </TouchableOpacity>
+      <Text style={{ marginTop: 20 }}>
+        Cập nhật vị trí sau mỗi 10 giây. Thời gian còn lại: {timeCounter} giây
+      </Text>
+      <Text style={{ marginTop: 20 }}>
+        Lần cập nhật cuối: {updateDate.toLocaleTimeString()}
+      </Text>
+      {resObj && Object.keys(resObj).length > 0 ? (
+        <Text>
+          Trạng thái cập nhật lần trước:{" "}
+          <Text style={{ color: `${resObj.status === 200 ? "green" : "red"}` }}>
+            {resObj.message}
+          </Text>
+        </Text>
+      ) : null}
+
+      {<PermissionsButton />}
     </View>
   );
 }

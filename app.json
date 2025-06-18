@@ -9,14 +9,27 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": ["location"],
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Ứng dụng cần quyền truy cập vị trí để gửi dữ liệu định kỳ.",
+        "NSLocationWhenInUseUsageDescription": "Cho phép truy cập vị trí khi dùng ứng dụng.",
+        "NSLocationAlwaysUsageDescription": "Cho phép truy cập vị trí kể cả khi app đang chạy nền."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE"
+      ],
+      "package": "com.vlqvinh444.locationtracker"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +50,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ce0b24c9-228a-4a2e-9f71-5aa1ce67ad71"
+      }
     }
   }
 }
