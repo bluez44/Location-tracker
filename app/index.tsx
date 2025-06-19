@@ -1,7 +1,7 @@
 import { udpateLocation } from "@/api";
 import PermissionsButton from "@/backgroundApp/locationTask";
-import * as ExpoLocation from "expo-location";
 import useLocation from "@/hook/useLocation";
+import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import { getUserLocation } from "@/utils/location";
 import { useLayoutEffect, useState } from "react";
 import { Linking, Text, TouchableOpacity, View } from "react-native";
@@ -27,31 +27,55 @@ export default function Index() {
     timezone,
   } = location?.[0] || {};
 
-  // console.log("Location data:", {
-  //   latitude,
-  //   longitude,
-  //   timeCounter,
-  // });
-
-  useLayoutEffect(() => {
+  const handleUpdateLocation = async () => {
+    console.log("handleUpdateLocation called with:", {
+      latitude,
+      longitude,
+      location,
+    });
     if (!latitude || !longitude || !location) {
       console.log("Waiting for location data...");
       return;
     }
 
-    console.log("Starting location update timer...", latitude, longitude);
+    const { prevLatitude, prevLongitude } = await loadFromStorage("location");
 
-    // console.log("Saving location...");
+    if (prevLatitude === undefined || prevLongitude === undefined) {
+      console.log("No previous location found, saving current location.");
+      saveToStorage(
+        "location",
+        {
+          prevLatitude: latitude,
+          prevLongitude: longitude,
+        },
+        1000 * 60 * 60 * 24
+      ); // Save for 24 hours
+    }
+
+    if (prevLatitude === latitude && prevLongitude === longitude) {
+      setResObj({
+        status: 404,
+        message: "Previous location is the same as current, skipping update.",
+      });
+      setUpdateDate(new Date());
+      setTimeCounter(10); // Reset the counter to 10 seconds
+      return;
+    }
+
     udpateLocation(latitude, longitude, location)
       .then((res) => {
-        console.log("Location updated successfully:", res, latitude, longitude);
+        console.log("Location updated successfully:", "res");
         setResObj(res);
         setUpdateDate(new Date());
         setTimeCounter(10); // Reset the counter to 10 seconds
       })
       .catch((error) => {
-        console.error("Error updating location:", error);
+        console.error("Error updating location22:", error);
       });
+  };
+
+  useLayoutEffect(() => {
+    handleUpdateLocation();
   }, [latitude, longitude, location]);
 
   useLayoutEffect(() => {
@@ -137,19 +161,7 @@ export default function Index() {
             marginTop: 20,
             textDecorationLine: "underline",
           }}
-          onPress={() => {
-            // console.log("Updating location...");
-            udpateLocation(latitude, longitude, location)
-              .then((res) => {
-                console.log("Location updated successfully:", res);
-                setResObj(res);
-                setUpdateDate(new Date());
-                setTimeCounter(10); // Reset the counter to 10 seconds
-              })
-              .catch((error) => {
-                console.error("Error updating location22:", error);
-              });
-          }}
+          onPress={handleUpdateLocation}
         >
           Update location
         </Text>
@@ -163,13 +175,23 @@ export default function Index() {
       {resObj && Object.keys(resObj).length > 0 ? (
         <Text>
           Trạng thái cập nhật lần trước:{" "}
-          <Text style={{ color: `${resObj.status === 200 ? "green" : "red"}` }}>
+          <Text
+            style={{
+              color: `${
+                resObj.status === 200
+                  ? "green"
+                  : resObj.status === 201
+                  ? "yellow"
+                  : "red"
+              }`,
+            }}
+          >
             {resObj.message}
           </Text>
         </Text>
       ) : null}
 
-      {<PermissionsButton />}
+      <PermissionsButton />
     </View>
   );
 }
