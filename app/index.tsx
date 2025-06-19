@@ -40,8 +40,15 @@ export default function Index() {
 
     const { prevLatitude, prevLongitude } = await loadFromStorage("location");
 
-    if (prevLatitude === undefined || prevLongitude === undefined) {
-      console.log("No previous location found, saving current location.");
+    if (
+      prevLatitude === undefined ||
+      prevLongitude === undefined ||
+      prevLatitude !== latitude ||
+      prevLongitude !== longitude
+    ) {
+      console.log(
+        "No previous location found or it's different, saving current location."
+      );
       saveToStorage(
         "location",
         {
