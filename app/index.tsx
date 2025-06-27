@@ -1,204 +1,342 @@
-import { udpateLocation } from "@/api";
+import { LocationInfo } from "@/models/LocationInfo";
+import { getUserLocation, saveLocation } from "@/utils/location";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  Alert,
+  AppState,
+  SafeAreaView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+import instance from "@/api";
 import PermissionsButton from "@/backgroundApp/locationTask";
-import useLocation from "@/hook/useLocation";
-import { loadFromStorage, saveToStorage } from "@/storage/ultils";
-import { getUserLocation } from "@/utils/location";
-import { useLayoutEffect, useState } from "react";
-import { Linking, Text, TouchableOpacity, View } from "react-native";
+import * as Camera from "expo-camera";
+import * as Location from "expo-location";
+import * as MediaLibrary from "expo-media-library";
+
+const checkPermissions = async () => {
+  const locationStatus = await Location.getForegroundPermissionsAsync();
+  const cameraStatus = await Camera.Camera.getCameraPermissionsAsync();
+  const mediaStatus = await MediaLibrary.getPermissionsAsync();
+
+  return {
+    hasLocationPermission: locationStatus.status === "granted",
+    hasCameraPermission: cameraStatus.status === "granted",
+    hasMediaPermission: mediaStatus.status === "granted",
+  };
+};
 
 export default function Index() {
-  const { latitude, longitude, location, errorMessage } = useLocation(10000);
-  const [timeCounter, setTimeCounter] = useState(10);
-  const [updateDate, setUpdateDate] = useState(new Date());
-  const [resObj, setResObj] = useState<any>(null);
+  const UPDATE_INTERVAL = 30;
+  const GET_INTERVAL = 10;
 
-  const {
-    city,
-    country,
-    district,
-    formattedAddress,
-    isoCountryCode,
-    name,
-    postalCode,
-    region,
-    street,
-    streetNumber,
-    subregion,
-    timezone,
-  } = location?.[0] || {};
+  const [locationInfor, setLocationInfor] = useState<LocationInfo>({
+    latitude: 0,
+    longitude: 0,
+    location: null,
+    errorMessage: "",
+  });
 
-  const handleUpdateLocation = async () => {
-    console.log("handleUpdateLocation called with:", {
-      latitude,
-      longitude,
-      location,
-    });
-    if (!latitude || !longitude || !location) {
-      console.log("Waiting for location data...");
-      return;
-    }
+  const appState = useRef(AppState.currentState);
+  const [isAppOnState, setIsAppOnState] = useState<boolean>(true);
 
-    const { prevLatitude, prevLongitude } = await loadFromStorage("location");
+  const [hasLocationPermission, setHasLocationPermission] =
+    useState<boolean>(false);
+  const [hasCameraPermission, setHasCameraPermission] =
+    useState<boolean>(false);
+  const [hasMediaPermission, setHasMediaPermission] = useState<boolean>(false);
 
-    if (
-      prevLatitude === undefined ||
-      prevLongitude === undefined ||
-      prevLatitude !== latitude ||
-      prevLongitude !== longitude
-    ) {
-      console.log(
-        "No previous location found or it's different, saving current location."
-      );
-      saveToStorage(
-        "location",
-        {
-          prevLatitude: latitude,
-          prevLongitude: longitude,
-        },
-        1000 * 60 * 60 * 24
-      ); // Save for 24 hours
-    }
+  const [getLocationDate, setGetLocationDate] = useState<Date | null>(null);
+  const [getLocationStatus, setGetLocationStatus] = useState<string>("");
+  const [getLocationTimer, setGetLocationTimer] =
+    useState<number>(GET_INTERVAL);
 
-    if (prevLatitude === latitude && prevLongitude === longitude) {
-      setResObj({
-        status: 404,
-        message: "Previous location is the same as current, skipping update.",
-      });
-      setUpdateDate(new Date());
-      setTimeCounter(10); // Reset the counter to 10 seconds
-      return;
-    }
+  const [updateLocationDate, setUpdateLocationDate] = useState<Date | null>(
+    null
+  );
+  const [updateStatus, setUpdateStatus] = useState<string>("");
+  const [updateLocationTimer, setUpdateLocationTimer] =
+    useState<number>(UPDATE_INTERVAL);
 
-    udpateLocation(latitude, longitude, location)
-      .then((res) => {
-        console.log("Location updated successfully:", "res");
-        setResObj(res);
-        setUpdateDate(new Date());
-        setTimeCounter(10); // Reset the counter to 10 seconds
+  const [isHandlingData, setIsHandlingData] = useState<boolean>(false);
+
+  const handleGetLocation = () => {
+    getUserLocation()
+      .then((data) => {
+        if (!data) {
+          console.error("No location data returned");
+          return;
+        }
+        setLocationInfor({
+          latitude: data.lati,
+          longitude: data.longi,
+          location: data.location,
+          errorMessage: data.errorMessage ?? "",
+        });
+        setGetLocationStatus(
+          data.errorMessage ? data.errorMessage : "Get location successfully"
+        );
       })
       .catch((error) => {
-        console.error("Error updating location22:", error);
+        setGetLocationStatus("Error fetching location");
+      })
+      .finally(() => {
+        setGetLocationDate(new Date());
+        setGetLocationTimer(GET_INTERVAL);
+      });
+  };
+
+  const handleSaveLocation = () => {
+    saveLocation(
+      locationInfor.latitude,
+      locationInfor.longitude,
+      locationInfor.location
+    )
+      .then((res) => {
+        setUpdateStatus(res.message);
+      })
+      .catch((error) => {
+        setUpdateStatus("Error saving location");
+      })
+      .finally(() => {
+        setUpdateLocationTimer(UPDATE_INTERVAL);
+        setUpdateLocationDate(new Date());
+      });
+  };
+
+  const handleGetUserLocation = () => {
+    Alert.alert("Get user location");
+    getUserLocation()
+      .then((data) => {
+        if (!data) {
+          console.error("No location data returned");
+          return;
+        }
+        setLocationInfor({
+          latitude: data.lati,
+          longitude: data.longi,
+          location: data.location,
+          errorMessage: data.errorMessage ?? "",
+        });
+        setUpdateStatus(
+          data.errorMessage ? data.errorMessage : "Get location successfully"
+        );
+        console.log("Location data:", data);
+      })
+      .catch((error) => {
+        console.error("Error fetching location:", error);
+        setUpdateStatus("Error fetching location");
+      })
+      .finally(() => {
+        setUpdateLocationDate(new Date());
       });
   };
 
   useLayoutEffect(() => {
-    handleUpdateLocation();
-  }, [latitude, longitude, location]);
-
-  useLayoutEffect(() => {
-    const interval = setInterval(() => {
-      setTimeCounter((prev) => {
-        if (prev <= 0) {
-          clearInterval(interval);
-          return 10; // Reset to 10 seconds
-        }
-        return prev - 1;
-      });
+    const timer = setInterval(() => {
+      if (updateLocationTimer <= 0) {
+        handleSaveLocation();
+        setUpdateLocationTimer(UPDATE_INTERVAL); // Reset timer to 10 seconds
+        return;
+      }
+      setUpdateLocationTimer((prev) => prev - 1);
     }, 1000);
 
-    return () => clearInterval(interval);
-  }, [timeCounter]);
+    return () => clearInterval(timer);
+  }, [updateLocationTimer]);
+
+  useLayoutEffect(() => {
+    const timer = setInterval(() => {
+      if (getLocationTimer <= 0) {
+        handleGetLocation();
+        setGetLocationTimer(GET_INTERVAL); // Reset timer to 10 seconds
+        return;
+      }
+      setGetLocationTimer((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [getLocationTimer]);
+
+  useEffect(() => {
+    handleGetLocation();
+  }, []);
+
+  useEffect(() => {
+    checkPermissions().then((permissions) => {
+      setHasLocationPermission(permissions.hasLocationPermission);
+      setHasCameraPermission(permissions.hasCameraPermission);
+      setHasMediaPermission(permissions.hasMediaPermission);
+    });
+  }, []);
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+    <SafeAreaView className="flex-1 items-center justify-center p-4">
+      <Text className="text-sky-500">Location App</Text>
       <Text>
-        Vị trí hiện tại của thiết bị:{" "}
-        {latitude && longitude
-          ? `${latitude}, ${longitude}`
-          : "Đang lấy vị trí..."}
+        Latitude:{" "}
+        {locationInfor.latitude
+          ? String(locationInfor.latitude)
+          : "Cannot get latitude"}
       </Text>
-      <Text>Quốc gia: {country || "Chưa biết"}</Text>
-      <Text>Mã quốc gia: {isoCountryCode || "Chưa biết"}</Text>
-      <Text>Mã postal: {postalCode || "Chưa biết"}</Text>
-      <Text>Vùng: {region || "Chưa biết"}</Text>
-      <Text>Thành phố: {city || "Chưa biết"}</Text>
-      <Text>Quận/Huyện: {district || "Chưa biết"}</Text>
-      <Text>Đường: {street || "Chưa biết"}</Text>
-      <Text>Phường: {subregion || "Chưa biết"}</Text>
-      <Text>Time zone: {timezone || "Chưa biết"}</Text>
-      <Text>Địa chỉ cụ thể: {formattedAddress}</Text>
-      {errorMessage ? (
-        <Text style={{ color: "red" }}>{errorMessage}</Text>
-      ) : null}
-      <TouchableOpacity>
-        <Text
-          style={{
-            color: "blue",
-            marginTop: 20,
-            textDecorationLine: "underline",
-          }}
-          onPress={() => {
-            const url = `https://www.google.com/maps/place/${latitude}+${longitude}`;
-            console.log("Opening URL:", url);
-            // Open the URL in the default browser
-            Linking.openURL(url);
-          }}
-        >
-          Go to Google Maps
+      <Text>
+        Longitude:{" "}
+        {locationInfor.longitude
+          ? String(locationInfor.longitude)
+          : "Cannot get longitude"}
+      </Text>
+      {locationInfor.errorMessage && (
+        <Text style={{ color: "red" }}>
+          Error: {locationInfor.errorMessage}
         </Text>
-      </TouchableOpacity>
+      )}
+      {locationInfor.location && (
+        <Text>Location: {locationInfor.location[0].formattedAddress}</Text>
+      )}
 
-      <TouchableOpacity>
-        <Text
-          style={{
-            color: "blue",
-            marginTop: 20,
-            textDecorationLine: "underline",
-          }}
-          onPress={() => {
-            getUserLocation().then((res) => {
-              console.log("New location:", res);
-            });
-          }}
-        >
-          Refresh Location
-        </Text>
-      </TouchableOpacity>
+      <View style={{ marginTop: 20 }}>
+        <Text>Permissions:</Text>
+        {hasLocationPermission ? (
+          <Text>Location is accepted</Text>
+        ) : (
+          <View>
+            <Text>Location is denied</Text>
+            <TouchableOpacity
+              onPress={async () => {
+                const { status } =
+                  await Location.requestForegroundPermissionsAsync();
+                if (status === "granted") {
+                  setHasLocationPermission(true);
+                } else {
+                  setHasLocationPermission(false);
+                }
+              }}
+            >
+              <Text
+                style={{
+                  color: "blue",
+                  textDecorationLine: "underline",
+                }}
+              >
+                Request Location Permission
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-      <TouchableOpacity>
-        <Text
-          style={{
-            color: "blue",
-            marginTop: 20,
-            textDecorationLine: "underline",
-          }}
-          onPress={handleUpdateLocation}
-        >
-          Update location
-        </Text>
-      </TouchableOpacity>
-      <Text style={{ marginTop: 20 }}>
-        Cập nhật vị trí sau mỗi 10 giây. Thời gian còn lại: {timeCounter} giây
-      </Text>
-      <Text style={{ marginTop: 20 }}>
-        Lần cập nhật cuối: {updateDate.toLocaleTimeString()}
-      </Text>
-      {resObj && Object.keys(resObj).length > 0 ? (
-        <Text>
-          Trạng thái cập nhật lần trước:{" "}
-          <Text
-            style={{
-              color: `${
-                resObj.status === 200
-                  ? "green"
-                  : resObj.status === 201
-                  ? "yellow"
-                  : "red"
-              }`,
-            }}
-          >
-            {resObj.message}
+        {hasCameraPermission ? (
+          <Text>Camera is accepted</Text>
+        ) : (
+          <View>
+            <Text>Camera is denied</Text>
+            <TouchableOpacity
+              onPress={async () => {
+                const { status } =
+                  await Camera.Camera.requestCameraPermissionsAsync();
+                if (status === "granted") {
+                  setHasCameraPermission(true);
+                } else {
+                  setHasCameraPermission(false);
+                }
+              }}
+            >
+              <Text
+                style={{
+                  color: "blue",
+                  textDecorationLine: "underline",
+                }}
+              >
+                Request Camera Permission
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {hasMediaPermission ? (
+          <Text>Media is accepted</Text>
+        ) : (
+          <View>
+            <Text>Media is denied</Text>
+            <TouchableOpacity
+              onPress={async () => {
+                const { status } = await MediaLibrary.requestPermissionsAsync();
+                if (status === "granted") {
+                  setHasMediaPermission(true);
+                } else {
+                  setHasMediaPermission(false);
+                }
+              }}
+            >
+              <Text
+                style={{
+                  color: "blue",
+                  textDecorationLine: "underline",
+                }}
+              >
+                Request Media Permission
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+      <View className="mt-4 justify-content-between flex items-center">
+        {getLocationDate && (
+          <Text className="mt-4">
+            Location last get at:{" "}
+            {getLocationDate
+              ? getLocationDate.toLocaleTimeString()
+              : "Not updated yet"}
           </Text>
+        )}
+        <Text className="mt-4">
+          Get location every {GET_INTERVAL} seconds. Time left:{" "}
+          {getLocationTimer} seconds
         </Text>
-      ) : null}
+        {getLocationStatus.includes("successfully") ||
+        getLocationStatus.includes("saved") ? (
+          <Text className="mt-2 text-green-500">{getLocationStatus}</Text>
+        ) : (
+          <Text className="mt-2 text-red-500">{getLocationStatus}</Text>
+        )}
+      </View>
+
+      <View className="mt-4 justify-content-between flex items-center">
+        {updateLocationDate && (
+          <Text className="mt-4">
+            Location last save at:{" "}
+            {updateLocationDate
+              ? updateLocationDate.toLocaleTimeString()
+              : "Not updated yet"}
+          </Text>
+        )}
+        <Text className="mt-4">
+          Save location every {UPDATE_INTERVAL} seconds. Time left:{" "}
+          {updateLocationTimer} seconds
+        </Text>
+        {updateStatus.includes("successfully") ||
+        updateStatus.includes("saved") ? (
+          <Text className="mt-2 text-green-500">{updateStatus}</Text>
+        ) : (
+          <Text className="mt-2 text-red-500">{updateStatus}</Text>
+        )}
+      </View>
+      <TouchableOpacity
+        className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+        onPress={handleGetUserLocation}
+      >
+        <Text className="text-white font-bold">Get Current Location</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+        onPress={handleSaveLocation}
+      >
+        <Text className="text-white font-bold">Save my location</Text>
+      </TouchableOpacity>
 
       <PermissionsButton />
-    </View>
+    </SafeAreaView>
   );
 }
