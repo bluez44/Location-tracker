@@ -1,11 +1,13 @@
 import { startBackgroundLocation } from "@/utils/background";
 import React from "react";
 import { Button, StyleSheet, View } from "react-native";
-import * as BackgroundTask from "expo-background-task";
 
 const PermissionsButton = () => (
   <View style={styles.container}>
-    <Button title="Enable location permission" onPress={async () => BackgroundTask.triggerTaskWorkerForTestingAsync()}/>
+    <Button
+      title="Enable location permission"
+      onPress={async () => await startBackgroundLocation()}
+    />
   </View>
 );
 

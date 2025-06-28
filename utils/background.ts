@@ -1,26 +1,36 @@
 import { LOCATION_TASK_NAME } from "@/constant/backgroundApp";
+import * as BackgroundTask from "expo-background-task";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import { Alert } from "react-native";
 
 const initBackgroundLocation = async () => {
-  TaskManager.defineTask(
-    LOCATION_TASK_NAME,
-    async ({ data: { locations }, error }: any) => {
-      console.log("Starting background location task...");
+  TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
+    console.log("Starting background location task...");
 
-      if (locations)
-        Alert.alert(
-          "Location Tracking",
-          "Background location tracking started successfully."
-        );
+    if (error) {
+      console.error("Background location task error:", error.message);
+      return;
+    }
 
-      console.log("End background location task.");
+    if (data)
+      Alert.alert(
+        "Location Tracking",
+        "Background location tracking started successfully."
+      );
+
+    console.log("End background location task.");
+  });
+
+  await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME).then(
+    async (res) => {
+      if (!res) {
+        BackgroundTask.registerTaskAsync(LOCATION_TASK_NAME);
+      }
     }
   );
 
-  if (!(await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME)))
-    await startBackgroundLocation();
+  console.log("Define background location task.");
 };
 
 const startBackgroundLocation = async () => {
@@ -39,6 +49,7 @@ const startBackgroundLocation = async () => {
 
   const isRegistered =
     await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
+
   if (!isRegistered) {
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.High,
@@ -52,7 +63,7 @@ const startBackgroundLocation = async () => {
       },
     })
       .then(() => {
-        Alert.alert(
+        console.log(
           "Location Tracking",
           "Background location tracking started successfully."
         );
@@ -63,8 +74,8 @@ const startBackgroundLocation = async () => {
           `Failed to start background location: ${error.message}`
         );
       });
-    console.log("✅ Started background location task");
   }
+  console.log("✅ Started background location task");
 };
 
 export { initBackgroundLocation, startBackgroundLocation };

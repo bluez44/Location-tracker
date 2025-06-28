@@ -1,7 +1,8 @@
 import PermissionsButton from "@/backgroundApp/locationTask";
+import { LOCATION_TASK_NAME } from "@/constant/backgroundApp";
 import { GET_INTERVAL, UPDATE_INTERVAL } from "@/constant/interval";
 import { LocationInfo } from "@/models/LocationInfo";
-import { initBackgroundLocation, startBackgroundLocation } from "@/utils/background";
+import { initBackgroundLocation } from "@/utils/background";
 import { getUserLocation, saveLocation } from "@/utils/location";
 import {
   checkPermissions,
@@ -9,7 +10,11 @@ import {
   requestLocationPermission,
   requestMediaPermission,
 } from "@/utils/permissions";
-import * as TaskManager from "expo-task-manager";
+import {
+  getRegisteredTasks,
+  registerTask,
+  unRegisteredAllTasks,
+} from "@/utils/taskManager";
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -19,10 +24,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { ScrollView } from "react-native";
 
-TaskManager.getRegisteredTasksAsync().then((tasks) => console.log(tasks));
-
-// initBackgroundLocation();
+initBackgroundLocation();
 
 export default function Index() {
   const [locationInfor, setLocationInfor] = useState<LocationInfo>({
@@ -50,6 +54,10 @@ export default function Index() {
   const [isUpdatingLocation, setIsUpdatingLocation] = useState<boolean>(false);
   const [updateLocationTimer, setUpdateLocationTimer] =
     useState<number>(UPDATE_INTERVAL);
+
+  const [registeredTasks, setRegisteredTasks] = useState<any>(null);
+  const [tasks, setTasks] = useState<any>(null);
+  const [unregisterTaskStatus, setUnregisterTaskStatus] = useState<any>(null);
 
   const handleGetLocation = () => {
     setIsGettingLocation(true);
@@ -99,6 +107,12 @@ export default function Index() {
       });
   };
 
+  const clearAlltaskInfor = () => {
+    setRegisteredTasks(null);
+    setTasks(null);
+    setUnregisterTaskStatus(null);
+  };
+
   useLayoutEffect(() => {
     const timer = setInterval(() => {
       if (updateLocationTimer <= 0) {
@@ -140,188 +154,237 @@ export default function Index() {
   useEffect(() => {
     AppState.addEventListener("change", () => {
       console.log("AppState: ", AppState.currentState);
-      if(AppState.currentState === "background") {
-        startBackgroundLocation();
+      if (AppState.currentState === "background") {
       }
     });
   }, []);
 
   return (
     <SafeAreaView className="flex-1 items-center justify-center p-4">
-      <Text className="text-sky-500">Location App</Text>
-      <Text>
-        Latitude:{" "}
-        {locationInfor.latitude
-          ? String(locationInfor.latitude)
-          : "Cannot get latitude"}
-      </Text>
-      <Text>
-        Longitude:{" "}
-        {locationInfor.longitude
-          ? String(locationInfor.longitude)
-          : "Cannot get longitude"}
-      </Text>
-      {locationInfor.errorMessage && (
-        <Text style={{ color: "red" }}>
-          Error: {locationInfor.errorMessage}
+      <ScrollView>
+        <Text className="text-sky-500">Location App</Text>
+        <Text>
+          Latitude:{" "}
+          {locationInfor.latitude
+            ? String(locationInfor.latitude)
+            : "Cannot get latitude"}
         </Text>
-      )}
-      {locationInfor.location && (
-        <Text>Location: {locationInfor.location[0].formattedAddress}</Text>
-      )}
-
-      <View style={{ marginTop: 20 }}>
-        <Text>Permissions:</Text>
-        {hasLocationPermission ? (
-          <Text>Location is accepted</Text>
-        ) : (
-          <View>
-            <Text>Location is denied</Text>
-            <TouchableOpacity
-              onPress={async () => {
-                const { status } = await requestLocationPermission();
-                if (status === "granted") {
-                  setHasLocationPermission(true);
-                } else {
-                  setHasLocationPermission(false);
-                }
-              }}
-            >
-              <Text
-                style={{
-                  color: "blue",
-                  textDecorationLine: "underline",
-                }}
-              >
-                Request Location Permission
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {hasCameraPermission ? (
-          <Text>Camera is accepted</Text>
-        ) : (
-          <View>
-            <Text>Camera is denied</Text>
-            <TouchableOpacity
-              onPress={async () => {
-                const { status } = await requestCameraPermission();
-                if (status === "granted") {
-                  setHasCameraPermission(true);
-                } else {
-                  setHasCameraPermission(false);
-                }
-              }}
-            >
-              <Text
-                style={{
-                  color: "blue",
-                  textDecorationLine: "underline",
-                }}
-              >
-                Request Camera Permission
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {hasMediaPermission ? (
-          <Text>Media is accepted</Text>
-        ) : (
-          <View>
-            <Text>Media is denied</Text>
-            <TouchableOpacity
-              onPress={async () => {
-                const { status } = await requestMediaPermission();
-                if (status === "granted") {
-                  setHasMediaPermission(true);
-                } else {
-                  setHasMediaPermission(false);
-                }
-              }}
-            >
-              <Text
-                style={{
-                  color: "blue",
-                  textDecorationLine: "underline",
-                }}
-              >
-                Request Media Permission
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-      <View className="mt-4 justify-content-between flex items-center">
-        {getLocationDate && (
-          <Text className="mt-4">
-            Location last get at:{" "}
-            {getLocationDate
-              ? getLocationDate.toLocaleTimeString()
-              : "Not updated yet"}
+        <Text>
+          Longitude:{" "}
+          {locationInfor.longitude
+            ? String(locationInfor.longitude)
+            : "Cannot get longitude"}
+        </Text>
+        {locationInfor.errorMessage && (
+          <Text style={{ color: "red" }}>
+            Error: {locationInfor.errorMessage}
           </Text>
         )}
-        <Text className="mt-4">
-          Get location every {GET_INTERVAL} seconds. Time left:{" "}
-          {getLocationTimer} seconds
-        </Text>
-        {getLocationStatus &&
-        (getLocationStatus.includes("successfully") ||
-          getLocationStatus.includes("saved")) ? (
-          <Text className="mt-2 text-green-500">{getLocationStatus}</Text>
-        ) : (
-          <Text className="mt-2 text-red-500">{getLocationStatus}</Text>
+        {locationInfor.location && (
+          <Text>Location: {locationInfor.location[0].formattedAddress}</Text>
         )}
-      </View>
 
-      <View className="mt-4 justify-content-between flex items-center">
-        {updateLocationDate && (
+        <View style={{ marginTop: 20 }}>
+          <Text>Permissions:</Text>
+          {hasLocationPermission ? (
+            <Text>Location is accepted</Text>
+          ) : (
+            <View>
+              <Text>Location is denied</Text>
+              <TouchableOpacity
+                onPress={async () => {
+                  const { status } = await requestLocationPermission();
+                  if (status === "granted") {
+                    setHasLocationPermission(true);
+                  } else {
+                    setHasLocationPermission(false);
+                  }
+                }}
+              >
+                <Text
+                  style={{
+                    color: "blue",
+                    textDecorationLine: "underline",
+                  }}
+                >
+                  Request Location Permission
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {hasCameraPermission ? (
+            <Text>Camera is accepted</Text>
+          ) : (
+            <View>
+              <Text>Camera is denied</Text>
+              <TouchableOpacity
+                onPress={async () => {
+                  const { status } = await requestCameraPermission();
+                  if (status === "granted") {
+                    setHasCameraPermission(true);
+                  } else {
+                    setHasCameraPermission(false);
+                  }
+                }}
+              >
+                <Text
+                  style={{
+                    color: "blue",
+                    textDecorationLine: "underline",
+                  }}
+                >
+                  Request Camera Permission
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {hasMediaPermission ? (
+            <Text>Media is accepted</Text>
+          ) : (
+            <View>
+              <Text>Media is denied</Text>
+              <TouchableOpacity
+                onPress={async () => {
+                  const { status } = await requestMediaPermission();
+                  if (status === "granted") {
+                    setHasMediaPermission(true);
+                  } else {
+                    setHasMediaPermission(false);
+                  }
+                }}
+              >
+                <Text
+                  style={{
+                    color: "blue",
+                    textDecorationLine: "underline",
+                  }}
+                >
+                  Request Media Permission
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+        <View className="mt-4 justify-content-between flex items-center">
+          {getLocationDate && (
+            <Text className="mt-4">
+              Location last get at:{" "}
+              {getLocationDate
+                ? getLocationDate.toLocaleTimeString()
+                : "Not updated yet"}
+            </Text>
+          )}
           <Text className="mt-4">
-            Location last save at:{" "}
-            {updateLocationDate
-              ? updateLocationDate.toLocaleTimeString()
-              : "Not updated yet"}
+            Get location every {GET_INTERVAL} seconds. Time left:{" "}
+            {getLocationTimer} seconds
           </Text>
-        )}
-        <Text className="mt-4">
-          Save location every {UPDATE_INTERVAL} seconds. Time left:{" "}
-          {updateLocationTimer} seconds
-        </Text>
-        {updateStatus &&
-        (updateStatus.includes("successfully") ||
-          updateStatus.includes("saved")) ? (
-          <Text className="mt-2 text-green-500">{updateStatus}</Text>
-        ) : (
-          <Text className="mt-2 text-red-500">{updateStatus}</Text>
-        )}
-      </View>
-      {isGettingLocation ? (
-        <View className="my-4">
-          <ActivityIndicator size={"large"} />
+          {isGettingLocation ? (
+            <View className="my-4">
+              <ActivityIndicator size={"large"} />
+            </View>
+          ) : (
+            <TouchableOpacity
+              className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+              onPress={handleGetLocation}
+            >
+              <Text className="text-white font-bold">Get Current Location</Text>
+            </TouchableOpacity>
+          )}
+          {getLocationStatus &&
+          (getLocationStatus.includes("successfully") ||
+            getLocationStatus.includes("saved")) ? (
+            <Text className="mt-2 text-green-500">{getLocationStatus}</Text>
+          ) : (
+            <Text className="mt-2 text-red-500">{getLocationStatus}</Text>
+          )}
         </View>
-      ) : (
-        <TouchableOpacity
-          className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-          onPress={handleGetLocation}
-        >
-          <Text className="text-white font-bold">Get Current Location</Text>
-        </TouchableOpacity>
-      )}
-      {isUpdatingLocation ? (
-        <View className="my-4">
-          <ActivityIndicator size={"large"} />
-        </View>
-      ) : (
-        <TouchableOpacity
-          className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-          onPress={handleSaveLocation}
-        >
-          <Text className="text-white font-bold">Save my location</Text>
-        </TouchableOpacity>
-      )}
 
-      <PermissionsButton />
+        <View className="mt-4 justify-content-between flex items-center">
+          {updateLocationDate && (
+            <Text className="mt-4">
+              Location last save at:{" "}
+              {updateLocationDate
+                ? updateLocationDate.toLocaleTimeString()
+                : "Not updated yet"}
+            </Text>
+          )}
+          <Text className="mt-4">
+            Save location every {UPDATE_INTERVAL} seconds. Time left:{" "}
+            {updateLocationTimer} seconds
+          </Text>
+          {updateStatus &&
+          (updateStatus.includes("successfully") ||
+            updateStatus.includes("saved")) ? (
+            <Text className="mt-2 text-green-500">{updateStatus}</Text>
+          ) : (
+            <Text className="mt-2 text-red-500">{updateStatus}</Text>
+          )}
+        </View>
+        {isUpdatingLocation ? (
+          <View className="my-4">
+            <ActivityIndicator size={"large"} />
+          </View>
+        ) : (
+          <TouchableOpacity
+            className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+            onPress={handleSaveLocation}
+          >
+            <Text className="text-white font-bold">Save my location</Text>
+          </TouchableOpacity>
+        )}
+
+        <PermissionsButton />
+        <TouchableOpacity
+          className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+          onPress={async () => {
+            const tasks = await getRegisteredTasks();
+            setTasks(tasks);
+          }}
+        >
+          <Text className="text-white font-bold">Get registered tasks</Text>
+        </TouchableOpacity>
+        {tasks &&
+          (tasks.length > 0 ? (
+            <Text>{JSON.stringify(tasks, null, 2)}</Text>
+          ) : (
+            <Text>No task found</Text>
+          ))}
+
+        <TouchableOpacity
+          className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+          onPress={async () => {
+            const status = await unRegisteredAllTasks();
+
+            setUnregisterTaskStatus(status);
+          }}
+        >
+          <Text className="text-white font-bold">Unregister all tasks</Text>
+        </TouchableOpacity>
+        {unregisterTaskStatus && (
+          <Text>Task status: {unregisterTaskStatus}</Text>
+        )}
+
+        <TouchableOpacity
+          className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+          onPress={async () => {
+            const status = await registerTask(LOCATION_TASK_NAME);
+
+            setRegisteredTasks(status);
+          }}
+        >
+          <Text className="text-white font-bold">Register location task</Text>
+        </TouchableOpacity>
+        {registeredTasks && <Text>Task status: {registeredTasks}</Text>}
+
+        <TouchableOpacity
+          className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+          onPress={clearAlltaskInfor}
+        >
+          <Text className="text-white font-bold">Clear all task infor</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }
