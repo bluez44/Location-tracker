@@ -3,6 +3,7 @@ import * as BackgroundTask from "expo-background-task";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import { Alert } from "react-native";
+import { saveLocation } from "./location";
 
 const initBackgroundLocation = async () => {
   TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
@@ -16,8 +17,9 @@ const initBackgroundLocation = async () => {
     if (data)
       Alert.alert(
         "Location Tracking",
-        "Background location tracking started successfully."
+        "Background location tracking started successfully." + JSON.stringify(data)
       );
+
 
     console.log("End background location task.");
   });
