@@ -1,8 +1,8 @@
 import { LocationInfo } from "@/models/LocationInfo";
 import { getUserLocation, saveLocation } from "@/utils/location";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import {
-  Alert,
+  ActivityIndicator,
   AppState,
   SafeAreaView,
   Text,
@@ -10,38 +10,22 @@ import {
   View,
 } from "react-native";
 
-import instance from "@/api";
 import PermissionsButton from "@/backgroundApp/locationTask";
-import * as Camera from "expo-camera";
-import * as Location from "expo-location";
-import * as MediaLibrary from "expo-media-library";
-
-const checkPermissions = async () => {
-  const locationStatus = await Location.getForegroundPermissionsAsync();
-  const cameraStatus = await Camera.Camera.getCameraPermissionsAsync();
-  const mediaStatus = await MediaLibrary.getPermissionsAsync();
-
-  return {
-    hasLocationPermission: locationStatus.status === "granted",
-    hasCameraPermission: cameraStatus.status === "granted",
-    hasMediaPermission: mediaStatus.status === "granted",
-  };
-};
+import { GET_INTERVAL, UPDATE_INTERVAL } from "@/constant/interval";
+import {
+  checkPermissions,
+  requestCameraPermission,
+  requestLocationPermission,
+  requestMediaPermission,
+} from "@/utils/permissions";
 
 export default function Index() {
-  const UPDATE_INTERVAL = 30;
-  const GET_INTERVAL = 10;
-
   const [locationInfor, setLocationInfor] = useState<LocationInfo>({
     latitude: 0,
     longitude: 0,
     location: null,
     errorMessage: "",
   });
-
-  const appState = useRef(AppState.currentState);
-  const [isAppOnState, setIsAppOnState] = useState<boolean>(true);
-
   const [hasLocationPermission, setHasLocationPermission] =
     useState<boolean>(false);
   const [hasCameraPermission, setHasCameraPermission] =
@@ -50,6 +34,7 @@ export default function Index() {
 
   const [getLocationDate, setGetLocationDate] = useState<Date | null>(null);
   const [getLocationStatus, setGetLocationStatus] = useState<string>("");
+  const [isGettingLocation, setIsGettingLocation] = useState<boolean>(false);
   const [getLocationTimer, setGetLocationTimer] =
     useState<number>(GET_INTERVAL);
 
@@ -57,12 +42,12 @@ export default function Index() {
     null
   );
   const [updateStatus, setUpdateStatus] = useState<string>("");
+  const [isUpdatingLocation, setIsUpdatingLocation] = useState<boolean>(false);
   const [updateLocationTimer, setUpdateLocationTimer] =
     useState<number>(UPDATE_INTERVAL);
 
-  const [isHandlingData, setIsHandlingData] = useState<boolean>(false);
-
   const handleGetLocation = () => {
+    setIsGettingLocation(true);
     getUserLocation()
       .then((data) => {
         if (!data) {
@@ -85,10 +70,12 @@ export default function Index() {
       .finally(() => {
         setGetLocationDate(new Date());
         setGetLocationTimer(GET_INTERVAL);
+        setIsGettingLocation(false);
       });
   };
 
   const handleSaveLocation = () => {
+    setIsUpdatingLocation(true);
     saveLocation(
       locationInfor.latitude,
       locationInfor.longitude,
@@ -103,34 +90,7 @@ export default function Index() {
       .finally(() => {
         setUpdateLocationTimer(UPDATE_INTERVAL);
         setUpdateLocationDate(new Date());
-      });
-  };
-
-  const handleGetUserLocation = () => {
-    Alert.alert("Get user location");
-    getUserLocation()
-      .then((data) => {
-        if (!data) {
-          console.error("No location data returned");
-          return;
-        }
-        setLocationInfor({
-          latitude: data.lati,
-          longitude: data.longi,
-          location: data.location,
-          errorMessage: data.errorMessage ?? "",
-        });
-        setUpdateStatus(
-          data.errorMessage ? data.errorMessage : "Get location successfully"
-        );
-        console.log("Location data:", data);
-      })
-      .catch((error) => {
-        console.error("Error fetching location:", error);
-        setUpdateStatus("Error fetching location");
-      })
-      .finally(() => {
-        setUpdateLocationDate(new Date());
+        setIsUpdatingLocation(false);
       });
   };
 
@@ -172,6 +132,12 @@ export default function Index() {
     });
   }, []);
 
+  useEffect(() => {
+    AppState.addEventListener("change", () => {
+      console.log("AppState: ", AppState.currentState);
+    })
+  }, [])
+
   return (
     <SafeAreaView className="flex-1 items-center justify-center p-4">
       <Text className="text-sky-500">Location App</Text>
@@ -205,8 +171,7 @@ export default function Index() {
             <Text>Location is denied</Text>
             <TouchableOpacity
               onPress={async () => {
-                const { status } =
-                  await Location.requestForegroundPermissionsAsync();
+                const { status } = await requestLocationPermission();
                 if (status === "granted") {
                   setHasLocationPermission(true);
                 } else {
@@ -233,8 +198,7 @@ export default function Index() {
             <Text>Camera is denied</Text>
             <TouchableOpacity
               onPress={async () => {
-                const { status } =
-                  await Camera.Camera.requestCameraPermissionsAsync();
+                const { status } = await requestCameraPermission();
                 if (status === "granted") {
                   setHasCameraPermission(true);
                 } else {
@@ -261,7 +225,7 @@ export default function Index() {
             <Text>Media is denied</Text>
             <TouchableOpacity
               onPress={async () => {
-                const { status } = await MediaLibrary.requestPermissionsAsync();
+                const { status } = await requestMediaPermission();
                 if (status === "granted") {
                   setHasMediaPermission(true);
                 } else {
@@ -294,8 +258,9 @@ export default function Index() {
           Get location every {GET_INTERVAL} seconds. Time left:{" "}
           {getLocationTimer} seconds
         </Text>
-        {getLocationStatus.includes("successfully") ||
-        getLocationStatus.includes("saved") ? (
+        {getLocationStatus &&
+        (getLocationStatus.includes("successfully") ||
+          getLocationStatus.includes("saved")) ? (
           <Text className="mt-2 text-green-500">{getLocationStatus}</Text>
         ) : (
           <Text className="mt-2 text-red-500">{getLocationStatus}</Text>
@@ -315,26 +280,38 @@ export default function Index() {
           Save location every {UPDATE_INTERVAL} seconds. Time left:{" "}
           {updateLocationTimer} seconds
         </Text>
-        {updateStatus.includes("successfully") ||
-        updateStatus.includes("saved") ? (
+        {updateStatus &&
+        (updateStatus.includes("successfully") ||
+          updateStatus.includes("saved")) ? (
           <Text className="mt-2 text-green-500">{updateStatus}</Text>
         ) : (
           <Text className="mt-2 text-red-500">{updateStatus}</Text>
         )}
       </View>
-      <TouchableOpacity
-        className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-        onPress={handleGetUserLocation}
-      >
-        <Text className="text-white font-bold">Get Current Location</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-        onPress={handleSaveLocation}
-      >
-        <Text className="text-white font-bold">Save my location</Text>
-      </TouchableOpacity>
+      {isGettingLocation ? (
+        <View className="my-4">
+          <ActivityIndicator size={"large"} />
+        </View>
+      ) : (
+        <TouchableOpacity
+          className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+          onPress={handleGetLocation}
+        >
+          <Text className="text-white font-bold">Get Current Location</Text>
+        </TouchableOpacity>
+      )}
+      {isUpdatingLocation ? (
+        <View className="my-4">
+          <ActivityIndicator size={"large"} />
+        </View>
+      ) : (
+        <TouchableOpacity
+          className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+          onPress={handleSaveLocation}
+        >
+          <Text className="text-white font-bold">Save my location</Text>
+        </TouchableOpacity>
+      )}
 
       <PermissionsButton />
     </SafeAreaView>

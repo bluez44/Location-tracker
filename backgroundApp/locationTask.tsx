@@ -1,4 +1,4 @@
-import { startBackgroundLocation } from "@/utils/location";
+import { startBackgroundLocation } from "@/utils/background";
 import React from "react";
 import { Button, StyleSheet, View } from "react-native";
 

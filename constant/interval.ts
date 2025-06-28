@@ -1,0 +1,5 @@
+const UPDATE_INTERVAL = 30;
+const GET_INTERVAL = 10;
+
+
+export { UPDATE_INTERVAL, GET_INTERVAL };
