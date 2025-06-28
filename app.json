@@ -11,7 +11,9 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": ["location"],
+        "UIBackgroundModes": [
+          "location"
+        ],
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Ứng dụng cần quyền truy cập vị trí để gửi dữ liệu định kỳ.",
         "NSLocationWhenInUseUsageDescription": "Cho phép truy cập vị trí khi dùng ứng dụng.",
         "NSLocationAlwaysUsageDescription": "Cho phép truy cập vị trí kể cả khi app đang chạy nền."
@@ -46,7 +48,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-background-task"
     ],
     "experiments": {
       "typedRoutes": true

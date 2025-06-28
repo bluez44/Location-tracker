@@ -1,5 +1,15 @@
+import PermissionsButton from "@/backgroundApp/locationTask";
+import { GET_INTERVAL, UPDATE_INTERVAL } from "@/constant/interval";
 import { LocationInfo } from "@/models/LocationInfo";
+import { initBackgroundLocation, startBackgroundLocation } from "@/utils/background";
 import { getUserLocation, saveLocation } from "@/utils/location";
+import {
+  checkPermissions,
+  requestCameraPermission,
+  requestLocationPermission,
+  requestMediaPermission,
+} from "@/utils/permissions";
+import * as TaskManager from "expo-task-manager";
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -10,14 +20,9 @@ import {
   View,
 } from "react-native";
 
-import PermissionsButton from "@/backgroundApp/locationTask";
-import { GET_INTERVAL, UPDATE_INTERVAL } from "@/constant/interval";
-import {
-  checkPermissions,
-  requestCameraPermission,
-  requestLocationPermission,
-  requestMediaPermission,
-} from "@/utils/permissions";
+TaskManager.getRegisteredTasksAsync().then((tasks) => console.log(tasks));
+
+// initBackgroundLocation();
 
 export default function Index() {
   const [locationInfor, setLocationInfor] = useState<LocationInfo>({
@@ -135,8 +140,11 @@ export default function Index() {
   useEffect(() => {
     AppState.addEventListener("change", () => {
       console.log("AppState: ", AppState.currentState);
-    })
-  }, [])
+      if(AppState.currentState === "background") {
+        startBackgroundLocation();
+      }
+    });
+  }, []);
 
   return (
     <SafeAreaView className="flex-1 items-center justify-center p-4">

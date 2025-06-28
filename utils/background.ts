@@ -1,6 +1,27 @@
 import { LOCATION_TASK_NAME } from "@/constant/backgroundApp";
 import * as Location from "expo-location";
+import * as TaskManager from "expo-task-manager";
 import { Alert } from "react-native";
+
+const initBackgroundLocation = async () => {
+  TaskManager.defineTask(
+    LOCATION_TASK_NAME,
+    async ({ data: { locations }, error }: any) => {
+      console.log("Starting background location task...");
+
+      if (locations)
+        Alert.alert(
+          "Location Tracking",
+          "Background location tracking started successfully."
+        );
+
+      console.log("End background location task.");
+    }
+  );
+
+  if (!(await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME)))
+    await startBackgroundLocation();
+};
 
 const startBackgroundLocation = async () => {
   const { status } = await Location.requestForegroundPermissionsAsync();
@@ -31,7 +52,7 @@ const startBackgroundLocation = async () => {
       },
     })
       .then(() => {
-        console.log(
+        Alert.alert(
           "Location Tracking",
           "Background location tracking started successfully."
         );
@@ -46,5 +67,4 @@ const startBackgroundLocation = async () => {
   }
 };
 
-
-export { startBackgroundLocation };
+export { initBackgroundLocation, startBackgroundLocation };
