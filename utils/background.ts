@@ -56,7 +56,7 @@ const startBackgroundLocation = async () => {
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.High,
       timeInterval: 10000, // in milliseconds
-      distanceInterval: 50, // in meters
+      distanceInterval: 0, // in meters
       showsBackgroundLocationIndicator: true,
       foregroundService: {
         notificationTitle: "Location Tracking",
