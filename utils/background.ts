@@ -16,6 +16,10 @@ const initBackgroundLocation = async () => {
       error: any;
     }) => {
       console.log("Starting background location task...");
+      schedulePushNotification(
+        "Location Tracking",
+        "Starting background location task..."
+      );
 
       if (error) {
         console.error("Background location task error:", error.message);
@@ -23,7 +27,7 @@ const initBackgroundLocation = async () => {
       }
 
       if (data) {
-        console.log(
+        Alert.alert(
           "Location Tracking",
           "Background location tracking started successfully." +
             JSON.stringify(data)
