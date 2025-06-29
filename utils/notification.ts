@@ -13,16 +13,16 @@ Notifications.setNotificationHandler({
   }),
 });
 
-async function schedulePushNotification() {
+async function schedulePushNotification(titile: string, body: string) {
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: "You've got mail! 📬",
-      body: "Here is the notification body",
+      title: titile,
+      body: body,
       data: { data: "goes here", test: { test1: "more data" } },
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-      seconds: 2,
+      seconds: 0,
     },
   });
 }

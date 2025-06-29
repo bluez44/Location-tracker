@@ -1,44 +1,16 @@
-import { registerForPushNotificationsAsync, schedulePushNotification } from "@/utils/notification";
+import { schedulePushNotification } from "@/utils/notification";
 import * as Notifications from "expo-notifications";
-import { useEffect, useState } from "react";
-import { Button, Platform, Text, View } from "react-native";
+import { Button, Text, View } from "react-native";
 
-export default function Notification() {
-  const [expoPushToken, setExpoPushToken] = useState("");
-  const [channels, setChannels] = useState<Notifications.NotificationChannel[]>(
-    []
-  );
-  const [notification, setNotification] = useState<
-    Notifications.Notification | undefined
-  >(undefined);
-
-  useEffect(() => {
-    registerForPushNotificationsAsync().then(
-      (token) => token && setExpoPushToken(token)
-    );
-
-    if (Platform.OS === "android") {
-      Notifications.getNotificationChannelsAsync().then((value) =>
-        setChannels(value ?? [])
-      );
-    }
-    const notificationListener = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        setNotification(notification);
-      }
-    );
-
-    const responseListener =
-      Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log(response);
-      });
-
-    return () => {
-      notificationListener.remove();
-      responseListener.remove();
-    };
-  }, []);
-
+export default function Notification({
+  expoPushToken,
+  channels,
+  notification,
+}: {
+  expoPushToken: string;
+  channels: Notifications.NotificationChannel[];
+  notification: Notifications.Notification | undefined;
+}) {
   return (
     <View
       style={{
@@ -66,7 +38,7 @@ export default function Notification() {
       <Button
         title="Press to schedule a notification"
         onPress={async () => {
-          await schedulePushNotification();
+          await schedulePushNotification("Test title", "Test body");
         }}
       />
     </View>

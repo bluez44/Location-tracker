@@ -2,7 +2,7 @@ import PermissionsButton from "@/backgroundApp/locationTask";
 import { LOCATION_TASK_NAME } from "@/constant/backgroundApp";
 import { GET_INTERVAL, UPDATE_INTERVAL } from "@/constant/interval";
 import { LocationInfo } from "@/models/LocationInfo";
-import { initBackgroundLocation } from "@/utils/background";
+import { initBackgroundLocation, startBackgroundLocation } from "@/utils/background";
 import { getUserLocation, saveLocation } from "@/utils/location";
 import {
   checkPermissions,
@@ -369,9 +369,7 @@ export default function Index() {
         <TouchableOpacity
           className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
           onPress={async () => {
-            const status = await registerTask(LOCATION_TASK_NAME);
-
-            setRegisteredTasks(status);
+            startBackgroundLocation();
           }}
         >
           <Text className="text-white font-bold">Register location task</Text>

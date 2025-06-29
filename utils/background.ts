@@ -1,34 +1,45 @@
 import { LOCATION_TASK_NAME } from "@/constant/backgroundApp";
-import * as BackgroundTask from "expo-background-task";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import { Alert } from "react-native";
 import { saveLocation } from "./location";
+import { schedulePushNotification } from "./notification";
 
 const initBackgroundLocation = async () => {
-  TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
-    console.log("Starting background location task...");
+  TaskManager.defineTask(
+    LOCATION_TASK_NAME,
+    async ({
+      data,
+      error,
+    }: {
+      data: Location.LocationObject[];
+      error: any;
+    }) => {
+      console.log("Starting background location task...");
 
-    if (error) {
-      console.error("Background location task error:", error.message);
-      return;
-    }
-
-    if (data)
-      Alert.alert(
-        "Location Tracking",
-        "Background location tracking started successfully." + JSON.stringify(data)
-      );
-
-
-    console.log("End background location task.");
-  });
-
-  await TaskManager.isTaskRegisteredAsync(LOCATION_TASK_NAME).then(
-    async (res) => {
-      if (!res) {
-        BackgroundTask.registerTaskAsync(LOCATION_TASK_NAME);
+      if (error) {
+        console.error("Background location task error:", error.message);
+        return;
       }
+
+      if (data) {
+        Alert.alert(
+          "Location Tracking",
+          "Background location tracking started successfully." +
+            JSON.stringify(data)
+        );
+
+        saveLocation(data[0].coords.latitude, data[0].coords.longitude, data[0])
+          .then((res) => {
+            Alert.alert("Location Tracking", res.message);
+            schedulePushNotification("Location Tracking", res.message);
+          })
+          .catch((error) => {
+            Alert.alert("Location Tracking", error.message);
+          });
+      }
+
+      console.log("End background location task.");
     }
   );
 
