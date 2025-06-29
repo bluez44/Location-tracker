@@ -1,16 +1,13 @@
 import { schedulePushNotification } from "@/utils/notification";
 import * as Notifications from "expo-notifications";
+import { useLocalSearchParams } from "expo-router";
 import { Button, Text, View } from "react-native";
 
-export default function Notification({
-  expoPushToken,
-  channels,
-  notification,
-}: {
-  expoPushToken: string;
-  channels: Notifications.NotificationChannel[];
-  notification: Notifications.Notification | undefined;
-}) {
+export default function Notification() {
+  const parmas = useLocalSearchParams()
+  const { expoPushToken, channels, notification } = parmas
+  console.log("Notification:", expoPushToken, channels, notification);
+
   return (
     <View
       style={{
@@ -21,7 +18,7 @@ export default function Notification({
     >
       <Text>Your expo push token: {expoPushToken}</Text>
       <Text>{`Channels: ${JSON.stringify(
-        channels.map((c) => c.id),
+        channels.map((c: any) => c.id),
         null,
         2
       )}`}</Text>

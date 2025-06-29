@@ -23,13 +23,17 @@ const initBackgroundLocation = async () => {
       }
 
       if (data) {
-        Alert.alert(
+        console.log(
           "Location Tracking",
           "Background location tracking started successfully." +
             JSON.stringify(data)
         );
 
-        saveLocation(data[0].coords.latitude, data[0].coords.longitude, data[0])
+        await saveLocation(
+          data[0].coords.latitude,
+          data[0].coords.longitude,
+          data[0]
+        )
           .then((res) => {
             Alert.alert("Location Tracking", res.message);
             schedulePushNotification("Location Tracking", res.message);
@@ -66,7 +70,7 @@ const startBackgroundLocation = async () => {
   if (!isRegistered) {
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.High,
-      timeInterval: 10000, // in milliseconds
+      timeInterval: 30000, // in milliseconds
       distanceInterval: 0, // in meters
       showsBackgroundLocationIndicator: true,
       foregroundService: {
