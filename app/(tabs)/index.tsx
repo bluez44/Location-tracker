@@ -1,4 +1,4 @@
-import PermissionsButton from "@/backgroundApp/locationTask";
+import PermissionsButton from "@/components/PermissionsButton";
 import { GET_INTERVAL, UPDATE_INTERVAL } from "@/constant/interval";
 import { LocationInfo } from "@/models/LocationInfo";
 import {
@@ -366,16 +366,6 @@ export default function Index() {
           {unregisterTaskStatus && (
             <Text>Task status: {unregisterTaskStatus}</Text>
           )}
-
-          <TouchableOpacity
-            className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-            onPress={async () => {
-              startBackgroundLocation();
-            }}
-          >
-            <Text className="text-white font-bold">Register location task</Text>
-          </TouchableOpacity>
-          {registeredTasks && <Text>Task status: {registeredTasks}</Text>}
 
           <TouchableOpacity
             className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
