@@ -15,7 +15,6 @@ const initBackgroundLocation = async () => {
       data: Location.LocationObject[];
       error: any;
     }) => {
-      console.log("Starting background location task...");
       schedulePushNotification(
         "Location Tracking",
         "Starting background location task..."
@@ -27,27 +26,25 @@ const initBackgroundLocation = async () => {
       }
 
       if (data) {
-        Alert.alert(
-          "Location Tracking",
-          "Background location tracking started successfully." +
-            JSON.stringify(data)
+        schedulePushNotification(
+          "Get location successfully",
+          JSON.stringify(data)
         );
+        try {
+          const res = await saveLocation(
+            data[0].coords.latitude,
+            data[0].coords.longitude,
+            data[0]
+          );
 
-        await saveLocation(
-          data[0].coords.latitude,
-          data[0].coords.longitude,
-          data[0]
-        )
-          .then((res) => {
-            Alert.alert("Location Tracking", res.message);
-            schedulePushNotification("Location Tracking", res.message);
-          })
-          .catch((error) => {
-            Alert.alert("Location Tracking", error.message);
-          });
+          schedulePushNotification("Location Tracking", res.message);
+        } catch (error: any) {
+          console.error(
+            "Failed to update location in background:",
+            error.message
+          );
+        }
       }
-
-      console.log("End background location task.");
     }
   );
 
