@@ -1,11 +1,9 @@
 import PermissionsButton from "@/components/PermissionsButton";
 import { GET_INTERVAL, UPDATE_INTERVAL } from "@/constant/interval";
 import { LocationInfo } from "@/models/LocationInfo";
-import {
-  initBackgroundLocation,
-  startBackgroundLocation,
-} from "@/utils/background";
+import { initBackgroundLocation } from "@/utils/background";
 import { getUserLocation, saveLocation } from "@/utils/location";
+import { schedulePushNotification } from "@/utils/notification";
 import {
   checkPermissions,
   requestCameraPermission,
@@ -155,11 +153,26 @@ export default function Index() {
     });
   }, []);
 
+  const [appState, setAppState] = useState(AppState.currentState);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      setAppState(nextAppState);
+      console.log("AppState changed to", nextAppState);
+      schedulePushNotification("AppState changed to", nextAppState);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
   return (
     <SafeAreaView className="">
       <ScrollView>
         <View className="flex-1 items-center justify-center p-4">
           <Text className="text-sky-500">Location App</Text>
+          <Text>Current app state: {appState}</Text>;
           <Text>
             Latitude:{" "}
             {locationInfor.latitude
@@ -180,7 +193,6 @@ export default function Index() {
           {locationInfor.location && (
             <Text>Location: {locationInfor.location[0].formattedAddress}</Text>
           )}
-
           <View style={{ marginTop: 20 }}>
             <Text>Permissions:</Text>
             {hasLocationPermission ? (
@@ -299,7 +311,6 @@ export default function Index() {
               <Text className="mt-2 text-red-500">{getLocationStatus}</Text>
             )}
           </View>
-
           <View className="mt-4 justify-content-between flex items-center">
             {updateLocationDate && (
               <Text className="mt-4">
@@ -333,7 +344,6 @@ export default function Index() {
               <Text className="text-white font-bold">Save my location</Text>
             </TouchableOpacity>
           )}
-
           <PermissionsButton />
           <TouchableOpacity
             className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
@@ -350,7 +360,6 @@ export default function Index() {
             ) : (
               <Text>No task found</Text>
             ))}
-
           <TouchableOpacity
             className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
             onPress={async () => {
@@ -364,7 +373,6 @@ export default function Index() {
           {unregisterTaskStatus && (
             <Text>Task status: {unregisterTaskStatus}</Text>
           )}
-
           <TouchableOpacity
             className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
             onPress={clearAlltaskInfor}
