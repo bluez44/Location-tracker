@@ -53,7 +53,6 @@ export default function Index() {
   const [updateLocationTimer, setUpdateLocationTimer] =
     useState<number>(UPDATE_INTERVAL);
 
-  const [registeredTasks, setRegisteredTasks] = useState<any>(null);
   const [tasks, setTasks] = useState<any>(null);
   const [unregisterTaskStatus, setUnregisterTaskStatus] = useState<any>(null);
 
@@ -106,7 +105,6 @@ export default function Index() {
   };
 
   const clearAlltaskInfor = () => {
-    setRegisteredTasks(null);
     setTasks(null);
     setUnregisterTaskStatus(null);
   };
