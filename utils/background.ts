@@ -15,29 +15,29 @@ const initBackgroundLocation = async () => {
       data: Location.LocationObject[];
       error: any;
     }) => {
-      schedulePushNotification(
-        "Location Tracking",
-        "Starting background location task..."
-      );
-
       if (error) {
         console.error("Background location task error:", error.message);
         return;
       }
 
       if (data) {
-        schedulePushNotification(
-          "Get location successfully",
-          JSON.stringify(data)
+        Alert.alert(
+          "Location Update",
+          `Latitude: ${data[0].coords.latitude}, Longitude: ${data[0].coords.longitude}`,
+          [{ text: "OK" }]
         );
+
+        schedulePushNotification(
+          "Location Update",
+          `Latitude: ${data[0].coords.latitude}, Longitude: ${data[0].coords.longitude}`
+        );
+
         try {
           const res = await saveLocation(
             data[0].coords.latitude,
             data[0].coords.longitude,
             data[0]
           );
-
-          schedulePushNotification("Location Tracking", res.message);
         } catch (error: any) {
           console.error(
             "Failed to update location in background:",
@@ -71,7 +71,7 @@ const startBackgroundLocation = async () => {
   if (!isRegistered) {
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.High,
-      timeInterval: 30000, // in milliseconds
+      timeInterval: 10000, // in milliseconds
       distanceInterval: 0, // in meters
       showsBackgroundLocationIndicator: true,
       foregroundService: {
@@ -87,13 +87,12 @@ const startBackgroundLocation = async () => {
         );
       })
       .catch((error) => {
-        Alert.alert(
+        console.log(
           "Error",
           `Failed to start background location: ${error.message}`
         );
       });
   }
-  console.log("✅ Started background location task");
 };
 
 export { initBackgroundLocation, startBackgroundLocation };

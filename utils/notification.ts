@@ -11,10 +11,7 @@ async function schedulePushNotification(titile: string, body: string) {
       body: body,
       data: { data: "goes here", test: { test1: "more data" } },
     },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-      seconds: 0,
-    },
+    trigger: null
   });
 }
 

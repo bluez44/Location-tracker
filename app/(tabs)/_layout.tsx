@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import { useEffect, useState } from "react";
 import * as Notifications from "expo-notifications";
 import { registerForPushNotificationsAsync } from "@/utils/notification";
-import { Platform } from "react-native";
+import { Alert, Platform } from "react-native";
 
 
 export default function Layout() {
@@ -14,6 +14,14 @@ export default function Layout() {
       shouldShowBanner: true,
       shouldShowList: true,
     }),
+  });
+
+  Notifications.scheduleNotificationAsync({
+    content: {
+      title: "Test noti",
+      body: "Test noti!",
+    },
+    trigger: null,
   });
   
   const [expoPushToken, setExpoPushToken] = useState("");
@@ -50,6 +58,12 @@ export default function Layout() {
       responseListener.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if(expoPushToken) Alert.alert("expoPushToken", expoPushToken);
+    if(channels) Alert.alert("channels", JSON.stringify(channels));
+    if(notification) Alert.alert("notification", JSON.stringify(notification));
+  }, [expoPushToken, channels, notification]);
   return (
     <Tabs screenOptions={{ tabBarActiveTintColor: "blue" }}>
       <Tabs.Screen name="index" options={{ title: "Location Tracker" }} />

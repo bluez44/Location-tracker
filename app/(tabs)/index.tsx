@@ -172,7 +172,7 @@ export default function Index() {
       <ScrollView>
         <View className="flex-1 items-center justify-center p-4">
           <Text className="text-sky-500">Location App</Text>
-          <Text>Current app state: {appState}</Text>;
+          <Text>Current app state: {appState}</Text>
           <Text>
             Latitude:{" "}
             {locationInfor.latitude
