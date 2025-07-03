@@ -3,7 +3,7 @@ import { GET_INTERVAL, UPDATE_INTERVAL } from "@/constant/interval";
 import { LocationInfo } from "@/models/LocationInfo";
 import { initBackgroundLocation } from "@/utils/background";
 import { getUserLocation, saveLocation } from "@/utils/location";
-import { schedulePushNotification } from "@/utils/notification";
+import { schedulePushNotification, schedulePushNotificationWithOnlyData } from "@/utils/notification";
 import {
   checkPermissions,
   requestCameraPermission,
@@ -145,21 +145,13 @@ export default function Index() {
     });
   }, []);
 
-  useEffect(() => {
-    AppState.addEventListener("change", () => {
-      console.log("AppState: ", AppState.currentState);
-      if (AppState.currentState === "background") {
-      }
-    });
-  }, []);
-
   const [appState, setAppState] = useState(AppState.currentState);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       setAppState(nextAppState);
       console.log("AppState changed to", nextAppState);
-      schedulePushNotification("AppState changed to", nextAppState);
+      schedulePushNotificationWithOnlyData({ appState: nextAppState });
     });
 
     return () => {

@@ -3,7 +3,7 @@ import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import { Alert } from "react-native";
 import { saveLocation } from "./location";
-import { schedulePushNotification } from "./notification";
+import { schedulePushNotification, schedulePushNotificationWithOnlyData } from "./notification";
 
 const initBackgroundLocation = async () => {
   TaskManager.defineTask(
@@ -27,10 +27,7 @@ const initBackgroundLocation = async () => {
           [{ text: "OK" }]
         );
 
-        schedulePushNotification(
-          "Location Update",
-          `Latitude: ${data[0].coords.latitude}, Longitude: ${data[0].coords.longitude}`
-        );
+        schedulePushNotificationWithOnlyData({ lati: data[0].coords.latitude, longi: data[0].coords.longitude });
 
         try {
           const res = await saveLocation(

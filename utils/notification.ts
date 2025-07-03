@@ -15,6 +15,15 @@ async function schedulePushNotification(titile: string, body: string) {
   });
 }
 
+async function schedulePushNotificationWithOnlyData(data : Record<string, any>) {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      data: data,
+    },
+    trigger: null,
+  });
+}
+
 async function registerForPushNotificationsAsync() {
   let token;
 
@@ -65,4 +74,8 @@ async function registerForPushNotificationsAsync() {
   return token;
 }
 
-export { registerForPushNotificationsAsync, schedulePushNotification };
+export {
+  registerForPushNotificationsAsync,
+  schedulePushNotification,
+  schedulePushNotificationWithOnlyData,
+};
