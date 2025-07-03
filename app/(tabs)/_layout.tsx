@@ -16,13 +16,13 @@ export default function Layout() {
     }),
   });
 
-  Notifications.scheduleNotificationAsync({
-    content: {
-      title: "Test noti",
-      body: "Test noti!",
-    },
-    trigger: null,
-  });
+  // Notifications.scheduleNotificationAsync({
+  //   content: {
+  //     title: "Test noti",
+  //     body: "Test noti!",
+  //   },
+  //   trigger: null,
+  // });
   
   const [expoPushToken, setExpoPushToken] = useState("");
   const [channels, setChannels] = useState<Notifications.NotificationChannel[]>(
