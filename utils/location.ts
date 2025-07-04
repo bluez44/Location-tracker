@@ -38,7 +38,6 @@ export const saveLocation = async (
 ) => {
   try {
     if (!latitude || !longitude) {
-      console.log("Latitude or longitude is null, skipping update.");
       return Promise.resolve({
         status: 404,
         message: "Latitude or longitude is null, skipping update.",
@@ -67,7 +66,6 @@ export const saveLocation = async (
       return;
     }
 
-    console.log("Updating location api:", latitude, longitude);
     const response = await instance.post("/api/locations", {
       userId,
       latitude,

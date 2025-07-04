@@ -58,15 +58,10 @@ export default function Layout() {
       responseListener.remove();
     };
   }, []);
-
-  useEffect(() => {
-    if(expoPushToken) Alert.alert("expoPushToken", expoPushToken);
-    if(channels) Alert.alert("channels", JSON.stringify(channels));
-    if(notification) Alert.alert("notification", JSON.stringify(notification));
-  }, [expoPushToken, channels, notification]);
   return (
     <Tabs screenOptions={{ tabBarActiveTintColor: "blue" }}>
       <Tabs.Screen name="index" options={{ title: "Location Tracker" }} />
+      <Tabs.Screen name="config" options={{ title: "Config" }} />
     </Tabs>
   );
 }

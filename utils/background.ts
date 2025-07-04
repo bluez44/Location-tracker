@@ -1,9 +1,14 @@
-import { LOCATION_TASK_NAME } from "@/constant/backgroundApp";
+import {
+  BACKGROUND_NOTIFICATION_TASK,
+  LOCATION_TASK_NAME,
+} from "@/constant/backgroundApp";
 import * as Location from "expo-location";
+import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import { Alert } from "react-native";
+import { schedulePushNotification } from "./notification";
 import { saveLocation } from "./location";
-import { schedulePushNotification, schedulePushNotificationWithOnlyData } from "./notification";
+import { UPDATE_INTERVAL } from "@/constant/interval";
 
 const initBackgroundLocation = async () => {
   TaskManager.defineTask(
@@ -12,7 +17,9 @@ const initBackgroundLocation = async () => {
       data,
       error,
     }: {
-      data: Location.LocationObject[];
+      data: {
+        locations: Location.LocationObject[];
+      };
       error: any;
     }) => {
       if (error) {
@@ -21,20 +28,23 @@ const initBackgroundLocation = async () => {
       }
 
       if (data) {
-        Alert.alert(
-          "Location Update",
-          `Latitude: ${data[0].coords.latitude}, Longitude: ${data[0].coords.longitude}`,
-          [{ text: "OK" }]
+        schedulePushNotification(
+          "Get location success",
+          `Latitude: ${data.locations[0].coords.latitude}\nLongitude: ${data.locations[0].coords.longitude}`
         );
-
-        schedulePushNotificationWithOnlyData({ lati: data[0].coords.latitude, longi: data[0].coords.longitude });
 
         try {
           const res = await saveLocation(
-            data[0].coords.latitude,
-            data[0].coords.longitude,
-            data[0]
+            data.locations[0].coords.latitude,
+            data.locations[0].coords.longitude,
+            data.locations[0]
           );
+
+          schedulePushNotification(
+            "Update location success",
+            JSON.stringify(res.message)
+          )
+
         } catch (error: any) {
           console.error(
             "Failed to update location in background:",
@@ -44,11 +54,27 @@ const initBackgroundLocation = async () => {
       }
     }
   );
-
-  console.log("Define background location task.");
 };
 
-const startBackgroundLocation = async () => {
+const initBackgroundNotification = async () => {
+  TaskManager.defineTask<Notifications.NotificationTaskPayload>(
+    BACKGROUND_NOTIFICATION_TASK,
+    async ({ data, error, executionInfo }: any) => {
+      console.log("Received a notification task payload!");
+      const isNotificationResponse = "actionIdentifier" in data;
+      if (isNotificationResponse) {
+        // Do something with the notification response from user
+        Alert.alert("Notification Response", JSON.stringify(data));
+      } else {
+        // Do something with the data from notification that was received
+        Alert.alert("Notification Received", JSON.stringify(data));
+      }
+      return;
+    }
+  );
+};
+
+const startBackgroundLocation = async (timeInterval?: number) => {
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status !== "granted") {
     console.log("Permission to access location was denied");
@@ -65,15 +91,17 @@ const startBackgroundLocation = async () => {
   const isRegistered =
     await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
 
+  console.log("star background location")
+
   if (!isRegistered) {
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.High,
-      timeInterval: 10000, // in milliseconds
+      timeInterval: timeInterval || UPDATE_INTERVAL * 1000, // in milliseconds
       distanceInterval: 0, // in meters
       showsBackgroundLocationIndicator: true,
       foregroundService: {
-        notificationTitle: "Location Tracking",
-        notificationBody: "We are tracking your location in the background.",
+        notificationTitle: "Location Tracking In Background",
+        notificationBody: `Location will auto save in ${(timeInterval || UPDATE_INTERVAL)/60} minutes.`,
         notificationColor: "#fff",
       },
     })
@@ -92,4 +120,14 @@ const startBackgroundLocation = async () => {
   }
 };
 
-export { initBackgroundLocation, startBackgroundLocation };
+const startBackgroundNotification = async () => {
+  if(!Notifications.PermissionStatus.GRANTED) await Notifications.requestPermissionsAsync();
+  Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+};
+
+export {
+  initBackgroundLocation,
+  initBackgroundNotification,
+  startBackgroundLocation,
+  startBackgroundNotification,
+};

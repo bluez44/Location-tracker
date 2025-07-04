@@ -1,7 +1,7 @@
-import PermissionsButton from "@/components/PermissionsButton";
+import { LocationPermissionsButton, NotificationPermissionsButton } from "@/components/PermissionsButton";
 import { GET_INTERVAL, UPDATE_INTERVAL } from "@/constant/interval";
 import { LocationInfo } from "@/models/LocationInfo";
-import { initBackgroundLocation } from "@/utils/background";
+import { initBackgroundLocation, initBackgroundNotification, startBackgroundLocation } from "@/utils/background";
 import { getUserLocation, saveLocation } from "@/utils/location";
 import { schedulePushNotification, schedulePushNotificationWithOnlyData } from "@/utils/notification";
 import {
@@ -10,19 +10,22 @@ import {
   requestLocationPermission,
   requestMediaPermission,
 } from "@/utils/permissions";
-import { getRegisteredTasks, unRegisteredAllTasks } from "@/utils/taskManager";
+import { getRegisteredTasks, unRegisteredLocationTask } from "@/utils/taskManager";
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   AppState,
   SafeAreaView,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
 initBackgroundLocation();
+initBackgroundNotification();
 
 export default function Index() {
   const [locationInfor, setLocationInfor] = useState<LocationInfo>({
@@ -151,13 +154,17 @@ export default function Index() {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       setAppState(nextAppState);
       console.log("AppState changed to", nextAppState);
-      schedulePushNotificationWithOnlyData({ appState: nextAppState });
+      // schedulePushNotificationWithOnlyData({ appState: nextAppState });
+      schedulePushNotification("AppState changed to", nextAppState);
     });
 
     return () => {
       subscription.remove();
     };
   }, []);
+
+  const [updateInterval, setUpdateInterval] = useState(UPDATE_INTERVAL);
+  const [isChanged, setIsChanged] = useState(false);
 
   return (
     <SafeAreaView className="">
@@ -186,12 +193,11 @@ export default function Index() {
             <Text>Location: {locationInfor.location[0].formattedAddress}</Text>
           )}
           <View style={{ marginTop: 20 }}>
-            <Text>Permissions:</Text>
             {hasLocationPermission ? (
-              <Text>Location is accepted</Text>
+              <Text className="text-green-500">Location is accepted</Text>
             ) : (
               <View>
-                <Text>Location is denied</Text>
+                <Text className="text-red-500">Location is denied</Text>
                 <TouchableOpacity
                   onPress={async () => {
                     const { status } = await requestLocationPermission();
@@ -209,60 +215,6 @@ export default function Index() {
                     }}
                   >
                     Request Location Permission
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {hasCameraPermission ? (
-              <Text>Camera is accepted</Text>
-            ) : (
-              <View>
-                <Text>Camera is denied</Text>
-                <TouchableOpacity
-                  onPress={async () => {
-                    const { status } = await requestCameraPermission();
-                    if (status === "granted") {
-                      setHasCameraPermission(true);
-                    } else {
-                      setHasCameraPermission(false);
-                    }
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "blue",
-                      textDecorationLine: "underline",
-                    }}
-                  >
-                    Request Camera Permission
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {hasMediaPermission ? (
-              <Text>Media is accepted</Text>
-            ) : (
-              <View>
-                <Text>Media is denied</Text>
-                <TouchableOpacity
-                  onPress={async () => {
-                    const { status } = await requestMediaPermission();
-                    if (status === "granted") {
-                      setHasMediaPermission(true);
-                    } else {
-                      setHasMediaPermission(false);
-                    }
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "blue",
-                      textDecorationLine: "underline",
-                    }}
-                  >
-                    Request Media Permission
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -303,27 +255,6 @@ export default function Index() {
               <Text className="mt-2 text-red-500">{getLocationStatus}</Text>
             )}
           </View>
-          <View className="mt-4 justify-content-between flex items-center">
-            {updateLocationDate && (
-              <Text className="mt-4">
-                Location last save at:{" "}
-                {updateLocationDate
-                  ? updateLocationDate.toLocaleTimeString()
-                  : "Not updated yet"}
-              </Text>
-            )}
-            <Text className="mt-4">
-              Save location every {UPDATE_INTERVAL} seconds. Time left:{" "}
-              {updateLocationTimer} seconds
-            </Text>
-            {updateStatus &&
-            (updateStatus.includes("successfully") ||
-              updateStatus.includes("saved")) ? (
-              <Text className="mt-2 text-green-500">{updateStatus}</Text>
-            ) : (
-              <Text className="mt-2 text-red-500">{updateStatus}</Text>
-            )}
-          </View>
           {isUpdatingLocation ? (
             <View className="my-4">
               <ActivityIndicator size={"large"} />
@@ -336,41 +267,29 @@ export default function Index() {
               <Text className="text-white font-bold">Save my location</Text>
             </TouchableOpacity>
           )}
-          <PermissionsButton />
-          <TouchableOpacity
-            className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-            onPress={async () => {
-              const tasks = await getRegisteredTasks();
-              setTasks(tasks);
+          <Text>Set update interval (seconds)</Text>
+          <TextInput
+            className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
+            onChangeText={(text) => {
+              setUpdateInterval(Number(text));
+              setIsChanged(true);
             }}
-          >
-            <Text className="text-white font-bold">Get registered tasks</Text>
-          </TouchableOpacity>
-          {tasks &&
-            (tasks.length > 0 ? (
-              <Text>{JSON.stringify(tasks, null, 2)}</Text>
-            ) : (
-              <Text>No task found</Text>
-            ))}
-          <TouchableOpacity
-            className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-            onPress={async () => {
-              const status = await unRegisteredAllTasks();
-
-              setUnregisterTaskStatus(status);
-            }}
-          >
-            <Text className="text-white font-bold">Unregister all tasks</Text>
-          </TouchableOpacity>
-          {unregisterTaskStatus && (
-            <Text>Task status: {unregisterTaskStatus}</Text>
+            value={updateInterval.toString()}
+            placeholder="useless placeholder"
+            keyboardType="numeric"
+          />
+          {isChanged && (
+            <TouchableOpacity
+              className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+              onPress={async () => {
+                const res = await unRegisteredLocationTask();
+                await startBackgroundLocation(updateInterval);
+                setIsChanged(false);
+              }}
+            >
+              <Text className="text-white font-bold">Save update interval</Text>
+            </TouchableOpacity>
           )}
-          <TouchableOpacity
-            className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-            onPress={clearAlltaskInfor}
-          >
-            <Text className="text-white font-bold">Clear all task infor</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

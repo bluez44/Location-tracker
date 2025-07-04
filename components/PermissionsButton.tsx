@@ -1,12 +1,24 @@
-import { startBackgroundLocation } from "@/utils/background";
+import {
+  startBackgroundLocation,
+  startBackgroundNotification,
+} from "@/utils/background";
 import React from "react";
 import { Button, StyleSheet, View } from "react-native";
 
-const PermissionsButton = () => (
+const LocationPermissionsButton = ({ timer } : { timer: number}) => (
   <View style={styles.container}>
     <Button
-      title="Enable location permission"
-      onPress={async () => await startBackgroundLocation()}
+      title="Enable location in background"
+      onPress={async () => await startBackgroundLocation(timer * 1000)}
+    />
+  </View>
+);
+
+const NotificationPermissionsButton = () => (
+  <View style={styles.container}>
+    <Button
+      title="Enable location in background"
+      onPress={async () => await startBackgroundNotification()}
     />
   </View>
 );
@@ -16,7 +28,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    marginVertical: 10,
+    display: 'none'
   },
 });
 
-export default PermissionsButton;
+export { LocationPermissionsButton, NotificationPermissionsButton };
