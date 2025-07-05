@@ -34,9 +34,9 @@ const initBackgroundLocation = async () => {
           "Get location success",
           `Latitude: ${data.locations[0].coords.latitude}\nLongitude: ${data.locations[0].coords.longitude}`
         );
-
+        
         const res = await loadFromStorage(VEHICLE_NUMBER);
-        let vehicleNumber = 0;
+        let vehicleNumber;
         if (res.name === VEHICLE_NUMBER) vehicleNumber = res.value;
 
         try {
