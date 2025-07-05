@@ -1,20 +1,26 @@
-import { LocationPermissionsButton, NotificationPermissionsButton } from "@/components/PermissionsButton";
-import { GET_INTERVAL, UPDATE_INTERVAL } from "@/constant/interval";
+import { VEHICLE_NUMBER } from "@/constant/info";
+import {
+  GET_INTERVAL,
+  UPDATE_INTERVAL,
+  UPDATE_INTERVAL_KEY,
+} from "@/constant/interval";
 import { LocationInfo } from "@/models/LocationInfo";
-import { initBackgroundLocation, initBackgroundNotification, startBackgroundLocation } from "@/utils/background";
+import { loadFromStorage, saveToStorage } from "@/storage/ultils";
+import {
+  initBackgroundLocation,
+  initBackgroundNotification,
+  startBackgroundLocation,
+} from "@/utils/background";
 import { getUserLocation, saveLocation } from "@/utils/location";
-import { schedulePushNotification, schedulePushNotificationWithOnlyData } from "@/utils/notification";
+import { schedulePushNotification } from "@/utils/notification";
 import {
   checkPermissions,
-  requestCameraPermission,
   requestLocationPermission,
-  requestMediaPermission,
 } from "@/utils/permissions";
-import { getRegisteredTasks, unRegisteredLocationTask } from "@/utils/taskManager";
+import { unRegisteredLocationTask } from "@/utils/taskManager";
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   AppState,
   SafeAreaView,
   ScrollView,
@@ -57,6 +63,20 @@ export default function Index() {
   const [tasks, setTasks] = useState<any>(null);
   const [unregisterTaskStatus, setUnregisterTaskStatus] = useState<any>(null);
 
+  const [vehicleNumber, setVehicleNumber] = useState<string>("");
+
+  useLayoutEffect(() => {
+    const handleGetVehicleNumber = async () => {
+      const res = await loadFromStorage(VEHICLE_NUMBER);
+
+      if (res.name === VEHICLE_NUMBER) {
+        setVehicleNumber(res.value);
+      }
+    };
+
+    handleGetVehicleNumber();
+  }, []);
+
   const handleGetLocation = () => {
     setIsGettingLocation(true);
     getUserLocation()
@@ -90,7 +110,8 @@ export default function Index() {
     saveLocation(
       locationInfor.latitude,
       locationInfor.longitude,
-      locationInfor.location
+      locationInfor.location,
+      vehicleNumber
     )
       .then((res) => {
         setUpdateStatus(res.message);
@@ -153,8 +174,6 @@ export default function Index() {
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       setAppState(nextAppState);
-      console.log("AppState changed to", nextAppState);
-      // schedulePushNotificationWithOnlyData({ appState: nextAppState });
       schedulePushNotification("AppState changed to", nextAppState);
     });
 
@@ -163,22 +182,36 @@ export default function Index() {
     };
   }, []);
 
-  const [updateInterval, setUpdateInterval] = useState(UPDATE_INTERVAL);
+  const [updateInterval, setUpdateInterval] = useState(0);
   const [isChanged, setIsChanged] = useState(false);
 
+  useLayoutEffect(() => {
+    const handleGetLocalUpdateInterval = async () => {
+      const updateInterval: {
+        name: string;
+        value: number;
+      } = await loadFromStorage(UPDATE_INTERVAL_KEY);
+      if (updateInterval.name === UPDATE_INTERVAL_KEY) {
+        setUpdateInterval(updateInterval.value);
+      }
+    };
+
+    handleGetLocalUpdateInterval();
+  }, []);
+
   return (
-    <SafeAreaView className="">
+    <SafeAreaView className="h-full dark:bg-black bg-white ">
       <ScrollView>
         <View className="flex-1 items-center justify-center p-4">
           <Text className="text-sky-500">Location App</Text>
-          <Text>Current app state: {appState}</Text>
-          <Text>
+          <Text className="dark:text-white">Current app state: {appState}</Text>
+          <Text className="dark:text-white">
             Latitude:{" "}
             {locationInfor.latitude
               ? String(locationInfor.latitude)
               : "Cannot get latitude"}
           </Text>
-          <Text>
+          <Text className="dark:text-white">
             Longitude:{" "}
             {locationInfor.longitude
               ? String(locationInfor.longitude)
@@ -190,7 +223,9 @@ export default function Index() {
             </Text>
           )}
           {locationInfor.location && (
-            <Text>Location: {locationInfor.location[0].formattedAddress}</Text>
+            <Text className="dark:text-white">
+              Location: {locationInfor.location[0].formattedAddress}
+            </Text>
           )}
           <View style={{ marginTop: 20 }}>
             {hasLocationPermission ? (
@@ -222,14 +257,14 @@ export default function Index() {
           </View>
           <View className="mt-4 justify-content-between flex items-center">
             {getLocationDate && (
-              <Text className="mt-4">
+              <Text className="mt-4 dark:text-white">
                 Location last get at:{" "}
                 {getLocationDate
                   ? getLocationDate.toLocaleTimeString()
                   : "Not updated yet"}
               </Text>
             )}
-            <Text className="mt-4">
+            <Text className="mt-4 dark:text-white">
               Get location every {GET_INTERVAL} seconds. Time left:{" "}
               {getLocationTimer} seconds
             </Text>
@@ -267,7 +302,7 @@ export default function Index() {
               <Text className="text-white font-bold">Save my location</Text>
             </TouchableOpacity>
           )}
-          <Text>Set update interval (seconds)</Text>
+          <Text className="dark:text-white">Set update interval (seconds)</Text>
           <TextInput
             className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
             onChangeText={(text) => {
@@ -284,6 +319,7 @@ export default function Index() {
               onPress={async () => {
                 const res = await unRegisteredLocationTask();
                 await startBackgroundLocation(updateInterval);
+                saveToStorage(UPDATE_INTERVAL_KEY, updateInterval, 0);
                 setIsChanged(false);
               }}
             >

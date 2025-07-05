@@ -1,4 +1,3 @@
-
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
@@ -11,11 +10,11 @@ async function schedulePushNotification(titile: string, body: string) {
       body: body,
       data: { data: "goes here", test: { test1: "more data" } },
     },
-    trigger: null
+    trigger: null,
   });
 }
 
-async function schedulePushNotificationWithOnlyData(data : Record<string, any>) {
+async function schedulePushNotificationWithOnlyData(data: Record<string, any>) {
   await Notifications.scheduleNotificationAsync({
     content: {
       data: data,
@@ -63,7 +62,6 @@ async function registerForPushNotificationsAsync() {
           projectId,
         })
       ).data;
-      console.log(token);
     } catch (e) {
       token = `${e}`;
     }

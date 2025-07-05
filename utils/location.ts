@@ -16,16 +16,12 @@ export const getUserLocation = async () => {
     lati = latitude;
     longi = longitude;
 
-    // console.log("Location:", latitude, longitude);
-
     const res = await Location.reverseGeocodeAsync({
       latitude,
       longitude,
     });
 
     location = res;
-
-    //   console.log("Location details:", res);
   }
 
   return { lati, longi, location, errorMessage };
@@ -34,7 +30,8 @@ export const getUserLocation = async () => {
 export const saveLocation = async (
   latitude: number | null,
   longitude: number | null,
-  location: Location.LocationObject | any
+  location: Location.LocationObject | any,
+  vehicleNumber: any
 ) => {
   try {
     if (!latitude || !longitude) {
@@ -45,7 +42,6 @@ export const saveLocation = async (
     }
 
     const timestamp = new Date().toString();
-    // console.log("Updating location api:", latitude, longitude, timestamp);
     const userId = 1; // Replace with actual user ID if needed
     const {
       city,
@@ -83,6 +79,7 @@ export const saveLocation = async (
       streetNumber,
       subregion,
       timezone,
+      vehicleNumber,
     });
 
     return response.data;

@@ -1,3 +1,4 @@
+import { UPDATE_INTERVAL_KEY } from "@/constant/interval";
 import storage from "./init";
 
 export const saveToStorage = (
@@ -16,11 +17,9 @@ export const saveToStorage = (
       expires: expireTime || null,
     })
     .then(() => {
-      console.log("Data saved to storage:", key, data);
       res = true; // Data saved successfully
     })
     .catch((error) => {
-      console.error("Error saving data to storage:", error);
       res = false; // Error saving data
     });
 
@@ -49,8 +48,7 @@ export const loadFromStorage = async (key: string): Promise<any> => {
       // see sync example below
     })
     .then((ret) => {
-      res = { ...ret }; // ret will be the stored data
-    //   console.log("Data loaded from storage:", key, res);
+      res = { name: key, value: ret }; // ret will be the stored data
     })
     .catch((err) => {
       // any exception including data not found
