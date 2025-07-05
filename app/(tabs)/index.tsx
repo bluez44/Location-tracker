@@ -42,9 +42,6 @@ export default function Index() {
   });
   const [hasLocationPermission, setHasLocationPermission] =
     useState<boolean>(false);
-  const [hasCameraPermission, setHasCameraPermission] =
-    useState<boolean>(false);
-  const [hasMediaPermission, setHasMediaPermission] = useState<boolean>(false);
 
   const [getLocationDate, setGetLocationDate] = useState<Date | null>(null);
   const [getLocationStatus, setGetLocationStatus] = useState<string>("");
@@ -57,11 +54,7 @@ export default function Index() {
   );
   const [updateStatus, setUpdateStatus] = useState<string>("");
   const [isUpdatingLocation, setIsUpdatingLocation] = useState<boolean>(false);
-  const [updateLocationTimer, setUpdateLocationTimer] =
-    useState<number>(UPDATE_INTERVAL);
-
-  const [tasks, setTasks] = useState<any>(null);
-  const [unregisterTaskStatus, setUnregisterTaskStatus] = useState<any>(null);
+  useState<number>(UPDATE_INTERVAL);
 
   const [vehicleNumber, setVehicleNumber] = useState<string>("");
 
@@ -120,29 +113,10 @@ export default function Index() {
         setUpdateStatus("Error saving location");
       })
       .finally(() => {
-        setUpdateLocationTimer(UPDATE_INTERVAL);
         setUpdateLocationDate(new Date());
         setIsUpdatingLocation(false);
       });
   };
-
-  const clearAlltaskInfor = () => {
-    setTasks(null);
-    setUnregisterTaskStatus(null);
-  };
-
-  useLayoutEffect(() => {
-    const timer = setInterval(() => {
-      if (updateLocationTimer <= 0) {
-        handleSaveLocation();
-        setUpdateLocationTimer(UPDATE_INTERVAL); // Reset timer to 10 seconds
-        return;
-      }
-      setUpdateLocationTimer((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [updateLocationTimer]);
 
   useLayoutEffect(() => {
     const timer = setInterval(() => {
@@ -164,8 +138,6 @@ export default function Index() {
   useEffect(() => {
     checkPermissions().then((permissions) => {
       setHasLocationPermission(permissions.hasLocationPermission);
-      setHasCameraPermission(permissions.hasCameraPermission);
-      setHasMediaPermission(permissions.hasMediaPermission);
     });
   }, []);
 
@@ -301,6 +273,21 @@ export default function Index() {
             >
               <Text className="text-white font-bold">Save my location</Text>
             </TouchableOpacity>
+          )}
+          {updateLocationDate && (
+            <Text className="mt-4 dark:text-white">
+              Location last get at:{" "}
+              {updateLocationDate
+                ? updateLocationDate.toLocaleTimeString()
+                : "Not updated yet"}
+            </Text>
+          )}
+          {updateStatus &&
+          (updateStatus.includes("successfully") ||
+            updateStatus.includes("saved")) ? (
+            <Text className="mt-2 text-green-500">{updateStatus}</Text>
+          ) : (
+            <Text className="mt-2 text-red-500">{updateStatus}</Text>
           )}
           <Text className="dark:text-white">Set update interval (seconds)</Text>
           <TextInput
