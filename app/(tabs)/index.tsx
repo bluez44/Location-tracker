@@ -99,12 +99,14 @@ export default function Index() {
   };
 
   const handleSaveLocation = () => {
+    const saveDate = new Date();
     setIsUpdatingLocation(true);
     saveLocation(
       locationInfor.latitude,
       locationInfor.longitude,
       locationInfor.location,
-      vehicleNumber
+      vehicleNumber,
+      saveDate
     )
       .then((res) => {
         setUpdateStatus(res.message);

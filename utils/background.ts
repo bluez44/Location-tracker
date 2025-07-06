@@ -30,11 +30,13 @@ const initBackgroundLocation = async () => {
       }
 
       if (data) {
+        const saveDate = new Date();
+
         schedulePushNotification(
           "Get location success",
-          `Latitude: ${data.locations[0].coords.latitude}\nLongitude: ${data.locations[0].coords.longitude}`
+          `Latitude: ${data.locations[0].coords.latitude}\nLongitude: ${data.locations[0].coords.longitude} \nDate: ${saveDate.toString()}`
         );
-        
+
         const res = await loadFromStorage(VEHICLE_NUMBER);
         let vehicleNumber;
         if (res.name === VEHICLE_NUMBER) vehicleNumber = res.value;
@@ -44,7 +46,8 @@ const initBackgroundLocation = async () => {
             data.locations[0].coords.latitude,
             data.locations[0].coords.longitude,
             data.locations[0],
-            vehicleNumber
+            vehicleNumber,
+            saveDate
           );
 
           schedulePushNotification(
@@ -98,7 +101,7 @@ const startBackgroundLocation = async (timeInterval?: number) => {
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.High,
       timeInterval: (timeInterval || UPDATE_INTERVAL) * 1000, // in milliseconds
-      distanceInterval: 0, // in meters
+      distanceInterval: 20, // in meters
       showsBackgroundLocationIndicator: true,
       foregroundService: {
         notificationTitle: "Location Tracking In Background",

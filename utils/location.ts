@@ -31,7 +31,8 @@ export const saveLocation = async (
   latitude: number | null,
   longitude: number | null,
   location: Location.LocationObject | any,
-  vehicleNumber: any
+  vehicleNumber: any,
+  saveDate: Date
 ) => {
   try {
     if (!latitude || !longitude) {
@@ -41,7 +42,7 @@ export const saveLocation = async (
       });
     }
 
-    const timestamp = new Date().toString();
+    const timestamp = saveDate.toString();
     const userId = 1; // Replace with actual user ID if needed
     const {
       city,
