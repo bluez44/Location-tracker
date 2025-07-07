@@ -22,6 +22,8 @@ import { unRegisteredLocationTask } from "@/utils/taskManager";
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   SafeAreaView,
   ScrollView,
   Text,
@@ -179,181 +181,190 @@ export default function Index() {
   }, []);
 
   return (
-    <SafeAreaView className="h-full dark:bg-black bg-white ">
-      <ScrollView>
-        <View className="flex-1 items-center justify-center p-4">
-          <Text className="text-sky-500">Location App</Text>
-          <Text className="dark:text-white">
-            Latitude:{" "}
-            {locationInfor.latitude
-              ? String(locationInfor.latitude)
-              : "Cannot get latitude"}
-          </Text>
-          <Text className="dark:text-white">
-            Longitude:{" "}
-            {locationInfor.longitude
-              ? String(locationInfor.longitude)
-              : "Cannot get longitude"}
-          </Text>
-          {locationInfor.errorMessage && (
-            <Text style={{ color: "red" }}>
-              Error: {locationInfor.errorMessage}
-            </Text>
-          )}
-          {locationInfor.location && (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <SafeAreaView className="h-full dark:bg-black bg-white">
+        <ScrollView keyboardShouldPersistTaps="handled">
+          <View className="flex-1 items-center justify-center p-4">
+            <Text className="text-sky-500">Location App</Text>
             <Text className="dark:text-white">
-              Location: {locationInfor.location[0].formattedAddress}
+              Latitude:{" "}
+              {locationInfor.latitude
+                ? String(locationInfor.latitude)
+                : "Cannot get latitude"}
             </Text>
-          )}
-          <View style={{ marginTop: 20 }}>
-            {hasLocationPermission ? (
-              <Text className="text-green-500">Location is accepted</Text>
-            ) : (
-              <View>
-                <Text className="text-red-500">Location is denied</Text>
-                <TouchableOpacity
-                  onPress={async () => {
-                    const { status } = await requestLocationPermission();
-                    if (status === "granted") {
-                      setHasLocationPermission(true);
-                    } else {
-                      setHasLocationPermission(false);
-                    }
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "blue",
-                      textDecorationLine: "underline",
-                    }}
-                  >
-                    Request Location Permission
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-          <View className="mt-4 justify-content-between flex items-center">
-            {getLocationDate && (
-              <Text className="mt-4 dark:text-white">
-                Location last get at:{" "}
-                {getLocationDate
-                  ? getLocationDate.toLocaleTimeString()
-                  : "Not updated yet"}
+            <Text className="dark:text-white">
+              Longitude:{" "}
+              {locationInfor.longitude
+                ? String(locationInfor.longitude)
+                : "Cannot get longitude"}
+            </Text>
+            {locationInfor.errorMessage && (
+              <Text style={{ color: "red" }}>
+                Error: {locationInfor.errorMessage}
               </Text>
             )}
-            <Text className="mt-4 dark:text-white">
-              Get location every {GET_INTERVAL} seconds. Time left:{" "}
-              {getLocationTimer} seconds
-            </Text>
-            {isGettingLocation ? (
+            {locationInfor.location && (
+              <Text className="dark:text-white">
+                Location: {locationInfor.location[0].formattedAddress}
+              </Text>
+            )}
+            <View style={{ marginTop: 20 }}>
+              {hasLocationPermission ? (
+                <Text className="text-green-500">Location is accepted</Text>
+              ) : (
+                <View>
+                  <Text className="text-red-500">Location is denied</Text>
+                  <TouchableOpacity
+                    onPress={async () => {
+                      const { status } = await requestLocationPermission();
+                      if (status === "granted") {
+                        setHasLocationPermission(true);
+                      } else {
+                        setHasLocationPermission(false);
+                      }
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "blue",
+                        textDecorationLine: "underline",
+                      }}
+                    >
+                      Request Location Permission
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+            <View className="mt-4 justify-content-between flex items-center">
+              {getLocationDate && (
+                <Text className="mt-4 dark:text-white">
+                  Location last get at:{" "}
+                  {getLocationDate
+                    ? getLocationDate.toLocaleTimeString()
+                    : "Not updated yet"}
+                </Text>
+              )}
+              <Text className="mt-4 dark:text-white">
+                Get location every {GET_INTERVAL} seconds. Time left:{" "}
+                {getLocationTimer} seconds
+              </Text>
+              {isGettingLocation ? (
+                <View className="my-4">
+                  <ActivityIndicator size={"large"} />
+                </View>
+              ) : (
+                <TouchableOpacity
+                  className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+                  onPress={handleGetLocation}
+                >
+                  <Text className="text-white font-bold">
+                    Get Current Location
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {getLocationStatus &&
+              (getLocationStatus.includes("successfully") ||
+                getLocationStatus.includes("saved")) ? (
+                <Text className="mt-2 text-green-500">{getLocationStatus}</Text>
+              ) : (
+                <Text className="mt-2 text-red-500">{getLocationStatus}</Text>
+              )}
+            </View>
+            {isUpdatingLocation ? (
               <View className="my-4">
                 <ActivityIndicator size={"large"} />
               </View>
             ) : (
               <TouchableOpacity
                 className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-                onPress={handleGetLocation}
+                onPress={handleSaveLocation}
+              >
+                <Text className="text-white font-bold">Save my location</Text>
+              </TouchableOpacity>
+            )}
+            {updateLocationDate && (
+              <Text className="mt-4 dark:text-white">
+                Location last get at:{" "}
+                {updateLocationDate
+                  ? updateLocationDate.toLocaleTimeString()
+                  : "Not updated yet"}
+              </Text>
+            )}
+            {updateStatus &&
+            (updateStatus.includes("successfully") ||
+              updateStatus.includes("saved")) ? (
+              <Text className="mt-2 text-green-500">{updateStatus}</Text>
+            ) : (
+              <Text className="mt-2 text-red-500">{updateStatus}</Text>
+            )}
+            <Text className="dark:text-white">
+              Set distance interval (meters)
+            </Text>
+            <TextInput
+              className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
+              onChangeText={(text) => {
+                setDistanceInterval(Number(text));
+              }}
+              onEndEditing={() => setIsDistanceIntervalChanged(true)}
+              value={distanceInterval.toString()}
+              keyboardType="numeric"
+            />
+            {isDistanceIntervalChanged && (
+              <TouchableOpacity
+                className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+                onPress={async () => {
+                  const res = await unRegisteredLocationTask();
+                  await startBackgroundLocation(
+                    distanceInterval,
+                    updateInterval
+                  );
+                  saveToStorage(DISTANCE_INTERVAL_KEY, distanceInterval, 0);
+                  setIsDistanceIntervalChanged(false);
+                }}
               >
                 <Text className="text-white font-bold">
-                  Get Current Location
+                  Save distance interval
                 </Text>
               </TouchableOpacity>
             )}
-            {getLocationStatus &&
-            (getLocationStatus.includes("successfully") ||
-              getLocationStatus.includes("saved")) ? (
-              <Text className="mt-2 text-green-500">{getLocationStatus}</Text>
-            ) : (
-              <Text className="mt-2 text-red-500">{getLocationStatus}</Text>
+
+            <Text className="dark:text-white">
+              Set update interval (minutes)
+            </Text>
+            <TextInput
+              className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
+              onChangeText={(text) => {
+                setUpdateInterval(Number(text));
+              }}
+              onEndEditing={() => setIsUpdateIntervalChanged(true)}
+              value={updateInterval.toString()}
+              keyboardType="numbers-and-punctuation"
+            />
+            {isUpdateIntervalChanged && (
+              <TouchableOpacity
+                className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+                onPress={async () => {
+                  const res = await unRegisteredLocationTask();
+                  await startBackgroundLocation(
+                    distanceInterval,
+                    updateInterval
+                  );
+                  saveToStorage(UPDATE_INTERVAL_KEY, updateInterval, 0);
+                  setIsUpdateIntervalChanged(false);
+                }}
+              >
+                <Text className="text-white font-bold">
+                  Save update interval
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
-          {isUpdatingLocation ? (
-            <View className="my-4">
-              <ActivityIndicator size={"large"} />
-            </View>
-          ) : (
-            <TouchableOpacity
-              className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-              onPress={handleSaveLocation}
-            >
-              <Text className="text-white font-bold">Save my location</Text>
-            </TouchableOpacity>
-          )}
-          {updateLocationDate && (
-            <Text className="mt-4 dark:text-white">
-              Location last get at:{" "}
-              {updateLocationDate
-                ? updateLocationDate.toLocaleTimeString()
-                : "Not updated yet"}
-            </Text>
-          )}
-          {updateStatus &&
-          (updateStatus.includes("successfully") ||
-            updateStatus.includes("saved")) ? (
-            <Text className="mt-2 text-green-500">{updateStatus}</Text>
-          ) : (
-            <Text className="mt-2 text-red-500">{updateStatus}</Text>
-          )}
-          <Text className="dark:text-white">
-            Set distance interval (meters)
-          </Text>
-          <TextInput
-            className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
-            onChangeText={(text) => {
-              setDistanceInterval(Number(text));
-            }}
-            onEndEditing={() => setIsDistanceIntervalChanged(true)}
-            value={distanceInterval.toString()}
-            placeholder="useless placeholder"
-            keyboardType="numeric"
-          />
-          {isDistanceIntervalChanged && (
-            <TouchableOpacity
-              className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-              onPress={async () => {
-                const res = await unRegisteredLocationTask();
-                await startBackgroundLocation(distanceInterval, updateInterval);
-                saveToStorage(DISTANCE_INTERVAL_KEY, distanceInterval, 0);
-                setIsDistanceIntervalChanged(false);
-              }}
-            >
-              <Text className="text-white font-bold">
-                Save distance interval
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          <Text className="dark:text-white">
-            Set update interval (minutes)
-          </Text>
-          <TextInput
-            className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
-            onChangeText={(text) => {
-              setUpdateInterval(Number(text));
-            }}
-            onEndEditing={() => setIsUpdateIntervalChanged(true)}
-            value={updateInterval.toString()}
-            placeholder="useless placeholder"
-            keyboardType="numeric"
-          />
-          {isUpdateIntervalChanged && (
-            <TouchableOpacity
-              className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-              onPress={async () => {
-                const res = await unRegisteredLocationTask();
-                await startBackgroundLocation(distanceInterval, updateInterval);
-                saveToStorage(UPDATE_INTERVAL_KEY, updateInterval, 0);
-                setIsUpdateIntervalChanged(false);
-              }}
-            >
-              <Text className="text-white font-bold">
-                Save update interval
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }
