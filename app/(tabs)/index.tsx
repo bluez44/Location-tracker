@@ -1,8 +1,10 @@
 import { VEHICLE_NUMBER } from "@/constant/info";
 import {
+  DISTANCE_INTERVAL,
   DISTANCE_INTERVAL_KEY,
   GET_INTERVAL,
   UPDATE_INTERVAL,
+  UPDATE_INTERVAL_KEY,
 } from "@/constant/interval";
 import { LocationInfo } from "@/models/LocationInfo";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
@@ -141,8 +143,12 @@ export default function Index() {
     });
   }, []);
 
-  const [distanceInterval, setDistanceInterval] = useState(0);
-  const [isChanged, setIsChanged] = useState(false);
+  const [distanceInterval, setDistanceInterval] = useState(DISTANCE_INTERVAL);
+  const [isDistanceIntervalChanged, setIsDistanceIntervalChanged] =
+    useState(false);
+
+  const [updateInterval, setUpdateInterval] = useState(UPDATE_INTERVAL);
+  const [isUpdateIntervalChanged, setIsUpdateIntervalChanged] = useState(false);
 
   useLayoutEffect(() => {
     const handleGetLocaldistanceInterval = async () => {
@@ -156,6 +162,20 @@ export default function Index() {
     };
 
     handleGetLocaldistanceInterval();
+  }, []);
+
+  useLayoutEffect(() => {
+    const handleGetLocalUpdateInterval = async () => {
+      const updateInterval: {
+        name: string;
+        value: number;
+      } = await loadFromStorage(UPDATE_INTERVAL_KEY);
+      if (updateInterval.name === UPDATE_INTERVAL_KEY) {
+        setUpdateInterval(updateInterval.value);
+      }
+    };
+
+    handleGetLocalUpdateInterval();
   }, []);
 
   return (
@@ -282,24 +302,53 @@ export default function Index() {
             className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
             onChangeText={(text) => {
               setDistanceInterval(Number(text));
-              setIsChanged(true);
             }}
+            onEndEditing={() => setIsDistanceIntervalChanged(true)}
             value={distanceInterval.toString()}
             placeholder="useless placeholder"
             keyboardType="numeric"
           />
-          {isChanged && (
+          {isDistanceIntervalChanged && (
             <TouchableOpacity
               className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
               onPress={async () => {
                 const res = await unRegisteredLocationTask();
-                await startBackgroundLocation(distanceInterval);
+                await startBackgroundLocation(distanceInterval, updateInterval);
                 saveToStorage(DISTANCE_INTERVAL_KEY, distanceInterval, 0);
-                setIsChanged(false);
+                setIsDistanceIntervalChanged(false);
               }}
             >
               <Text className="text-white font-bold">
                 Save distance interval
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          <Text className="dark:text-white">
+            Set update interval (minutes)
+          </Text>
+          <TextInput
+            className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
+            onChangeText={(text) => {
+              setUpdateInterval(Number(text));
+            }}
+            onEndEditing={() => setIsUpdateIntervalChanged(true)}
+            value={updateInterval.toString()}
+            placeholder="useless placeholder"
+            keyboardType="numeric"
+          />
+          {isUpdateIntervalChanged && (
+            <TouchableOpacity
+              className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+              onPress={async () => {
+                const res = await unRegisteredLocationTask();
+                await startBackgroundLocation(distanceInterval, updateInterval);
+                saveToStorage(UPDATE_INTERVAL_KEY, updateInterval, 0);
+                setIsUpdateIntervalChanged(false);
+              }}
+            >
+              <Text className="text-white font-bold">
+                Save update interval
               </Text>
             </TouchableOpacity>
           )}

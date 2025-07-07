@@ -3,13 +3,14 @@ import {
   LOCATION_TASK_NAME,
 } from "@/constant/backgroundApp";
 import { VEHICLE_NUMBER } from "@/constant/info";
-import { DISTANCE_INTERVAL } from "@/constant/interval";
-import { loadFromStorage } from "@/storage/ultils";
+import { DISTANCE_INTERVAL, UPDATE_INTERVAL } from "@/constant/interval";
+import { LAST_LOCATION_KEY } from "@/constant/location";
+import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import { Alert } from "react-native";
-import { saveLocation } from "./location";
+import { saveLocationInBackground } from "./location";
 import { schedulePushNotification } from "./notification";
 
 const initBackgroundLocation = async () => {
@@ -30,11 +31,13 @@ const initBackgroundLocation = async () => {
       }
 
       if (data) {
-        const saveDate = new Date();
+        const currentLocation = data.locations[0].coords;
+
+        saveToStorage(LAST_LOCATION_KEY, currentLocation, 0);
 
         schedulePushNotification(
           "Get location success",
-          `Latitude: ${data.locations[0].coords.latitude}\nLongitude: ${data.locations[0].coords.longitude} \nDate: ${saveDate.toString()}`
+          `Latitude: ${currentLocation.latitude}\nLongitude: ${currentLocation.longitude} \nDate: ${new Date(data.locations[0].timestamp).toString()} \nSpeed: ${currentLocation.speed} \nAccuracy: ${currentLocation.accuracy}`
         );
 
         const res = await loadFromStorage(VEHICLE_NUMBER);
@@ -42,12 +45,13 @@ const initBackgroundLocation = async () => {
         if (res.name === VEHICLE_NUMBER) vehicleNumber = res.value;
 
         try {
-          const res = await saveLocation(
-            data.locations[0].coords.latitude,
-            data.locations[0].coords.longitude,
-            data.locations[0],
+          const res = await saveLocationInBackground(
+            currentLocation.latitude,
+            currentLocation.longitude,
+            currentLocation.heading,
+            currentLocation.speed,
+            data.locations[0].timestamp,
             vehicleNumber,
-            saveDate
           );
 
           schedulePushNotification(
@@ -82,7 +86,10 @@ const initBackgroundNotification = async () => {
   );
 };
 
-const startBackgroundLocation = async (distanceInterval?: number) => {
+const startBackgroundLocation = async (
+  distanceInterval: number,
+  timer: number
+) => {
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status !== "granted") {
     return;
@@ -100,11 +107,12 @@ const startBackgroundLocation = async (distanceInterval?: number) => {
   if (!isRegistered) {
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.High,
+      timeInterval: (timer || UPDATE_INTERVAL) * 60 * 1000, // in milliseconds
       distanceInterval: distanceInterval || DISTANCE_INTERVAL, // in meters
       showsBackgroundLocationIndicator: true,
       foregroundService: {
         notificationTitle: "Location Tracking In Background",
-        notificationBody: `Location will auto save in ${distanceInterval || DISTANCE_INTERVAL} meters.`,
+        notificationBody: `Location will auto save in ${timer | UPDATE_INTERVAL} minutes or when distance difference is ${distanceInterval || DISTANCE_INTERVAL} meters`,
         notificationColor: "#fff",
       },
     });

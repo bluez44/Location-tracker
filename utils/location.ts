@@ -89,3 +89,43 @@ export const saveLocation = async (
     throw error;
   }
 };
+
+export const saveLocationInBackground = async (
+  latitude: number,
+  longitude: number,
+  heading: number | null,
+  speed: number | null,
+  saveTimestamp: number,
+  vehicleNumber: any,
+) => {
+  try {
+    if (!latitude || !longitude) {
+      return Promise.resolve({
+        status: 404,
+        message: "Latitude or longitude is null, skipping update.",
+      });
+    }
+
+    const timestamp = new Date(saveTimestamp).toString();
+    const userId = 1; // Replace with actual user ID if needed
+
+    if (latitude === null || longitude === null) {
+      return;
+    }
+
+    const response = await instance.post("/api/locations", {
+      userId,
+      latitude,
+      longitude,
+      heading,
+      speed,
+      timestamp,
+      vehicleNumber,
+    });
+
+    return response.data;
+  } catch (error: AxiosError | any) {
+    console.error("Error updating location:", error.message);
+    throw error;
+  }
+};
