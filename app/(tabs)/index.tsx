@@ -12,7 +12,6 @@ import {
   startBackgroundLocation,
 } from "@/utils/background";
 import { getUserLocation, saveLocation } from "@/utils/location";
-import { schedulePushNotification } from "@/utils/notification";
 import {
   checkPermissions,
   requestLocationPermission,
@@ -21,7 +20,6 @@ import { unRegisteredLocationTask } from "@/utils/taskManager";
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
-  AppState,
   SafeAreaView,
   ScrollView,
   Text,
@@ -143,19 +141,6 @@ export default function Index() {
     });
   }, []);
 
-  const [appState, setAppState] = useState(AppState.currentState);
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener("change", (nextAppState) => {
-      setAppState(nextAppState);
-      schedulePushNotification("AppState changed to", nextAppState);
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, []);
-
   const [distanceInterval, setDistanceInterval] = useState(0);
   const [isChanged, setIsChanged] = useState(false);
 
@@ -178,7 +163,6 @@ export default function Index() {
       <ScrollView>
         <View className="flex-1 items-center justify-center p-4">
           <Text className="text-sky-500">Location App</Text>
-          <Text className="dark:text-white">Current app state: {appState}</Text>
           <Text className="dark:text-white">
             Latitude:{" "}
             {locationInfor.latitude
@@ -292,7 +276,7 @@ export default function Index() {
             <Text className="mt-2 text-red-500">{updateStatus}</Text>
           )}
           <Text className="dark:text-white">
-            Set distance interval (seconds)
+            Set distance interval (meters)
           </Text>
           <TextInput
             className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
@@ -314,7 +298,9 @@ export default function Index() {
                 setIsChanged(false);
               }}
             >
-              <Text className="text-white font-bold">Save update interval</Text>
+              <Text className="text-white font-bold">
+                Save distance interval
+              </Text>
             </TouchableOpacity>
           )}
         </View>
