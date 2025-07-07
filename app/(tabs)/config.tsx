@@ -1,17 +1,27 @@
 import { NotificationPermissionsButton } from "@/components/PermissionsButton";
 import { VEHICLE_NUMBER } from "@/constant/info";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
-import { getRegisteredTasks, unRegisteredLocationTask } from "@/utils/taskManager";
+import {
+  getRegisteredTasks,
+  unRegisteredLocationTask,
+} from "@/utils/taskManager";
 import React, { useLayoutEffect, useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
-import { ScrollView, SafeAreaView } from "react-native";
+import {
+  SafeAreaView,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const config = () => {
   const [tasks, setTasks] = useState<any>(null);
   const [unregisterTaskStatus, setUnregisterTaskStatus] = useState<any>(null);
 
   const [vehicleNumber, setVehicleNumber] = useState<string>("");
-  const [isVehicleNumChanged, setIsVehicleNumChanged] = useState<boolean>(false);
+  const [isVehicleNumChanged, setIsVehicleNumChanged] =
+    useState<boolean>(false);
 
   const clearAlltaskInfor = () => {
     setTasks(null);
@@ -20,15 +30,15 @@ const config = () => {
 
   useLayoutEffect(() => {
     const handleGetVehicleNumber = async () => {
-      const res =await loadFromStorage(VEHICLE_NUMBER)
+      const res = await loadFromStorage(VEHICLE_NUMBER);
 
-      if(res.name === VEHICLE_NUMBER){
-        setVehicleNumber(res.value)
+      if (res.name === VEHICLE_NUMBER) {
+        setVehicleNumber(res.value);
       }
-    }
+    };
 
-    handleGetVehicleNumber()
-  }, [])
+    handleGetVehicleNumber();
+  }, []);
 
   return (
     <SafeAreaView className="px-5 flex justify-center flex-col h-full dark:bg-black">
@@ -45,9 +55,11 @@ const config = () => {
         </TouchableOpacity>
         {tasks &&
           (tasks.length > 0 ? (
-            <Text>{JSON.stringify(tasks, null, 2)}</Text>
+            <Text className="dark:text-white">
+              {JSON.stringify(tasks, null, 2)}
+            </Text>
           ) : (
-            <Text>No task found</Text>
+            <Text className="dark:text-white">No task found</Text>
           ))}
         <TouchableOpacity
           className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
@@ -62,7 +74,9 @@ const config = () => {
           </Text>
         </TouchableOpacity>
         {unregisterTaskStatus && (
-          <Text>Task status: {unregisterTaskStatus}</Text>
+          <Text className="dark:text-white">
+            Task status: {unregisterTaskStatus}
+          </Text>
         )}
         <TouchableOpacity
           className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"

@@ -1,8 +1,8 @@
 import { VEHICLE_NUMBER } from "@/constant/info";
 import {
+  DISTANCE_INTERVAL_KEY,
   GET_INTERVAL,
   UPDATE_INTERVAL,
-  UPDATE_INTERVAL_KEY,
 } from "@/constant/interval";
 import { LocationInfo } from "@/models/LocationInfo";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
@@ -156,21 +156,21 @@ export default function Index() {
     };
   }, []);
 
-  const [updateInterval, setUpdateInterval] = useState(0);
+  const [distanceInterval, setDistanceInterval] = useState(0);
   const [isChanged, setIsChanged] = useState(false);
 
   useLayoutEffect(() => {
-    const handleGetLocalUpdateInterval = async () => {
-      const updateInterval: {
+    const handleGetLocaldistanceInterval = async () => {
+      const distanceInterval: {
         name: string;
         value: number;
-      } = await loadFromStorage(UPDATE_INTERVAL_KEY);
-      if (updateInterval.name === UPDATE_INTERVAL_KEY) {
-        setUpdateInterval(updateInterval.value);
+      } = await loadFromStorage(DISTANCE_INTERVAL_KEY);
+      if (distanceInterval.name === DISTANCE_INTERVAL_KEY) {
+        setDistanceInterval(distanceInterval.value);
       }
     };
 
-    handleGetLocalUpdateInterval();
+    handleGetLocaldistanceInterval();
   }, []);
 
   return (
@@ -291,14 +291,16 @@ export default function Index() {
           ) : (
             <Text className="mt-2 text-red-500">{updateStatus}</Text>
           )}
-          <Text className="dark:text-white">Set update interval (seconds)</Text>
+          <Text className="dark:text-white">
+            Set distance interval (seconds)
+          </Text>
           <TextInput
             className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
             onChangeText={(text) => {
-              setUpdateInterval(Number(text));
+              setDistanceInterval(Number(text));
               setIsChanged(true);
             }}
-            value={updateInterval.toString()}
+            value={distanceInterval.toString()}
             placeholder="useless placeholder"
             keyboardType="numeric"
           />
@@ -307,8 +309,8 @@ export default function Index() {
               className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
               onPress={async () => {
                 const res = await unRegisteredLocationTask();
-                await startBackgroundLocation(updateInterval);
-                saveToStorage(UPDATE_INTERVAL_KEY, updateInterval, 0);
+                await startBackgroundLocation(distanceInterval);
+                saveToStorage(DISTANCE_INTERVAL_KEY, distanceInterval, 0);
                 setIsChanged(false);
               }}
             >
