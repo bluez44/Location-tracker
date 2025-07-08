@@ -33,9 +33,6 @@ import {
   View,
 } from "react-native";
 
-initBackgroundLocation();
-initBackgroundNotification();
-
 export default function Index() {
   const [locationInfor, setLocationInfor] = useState<LocationInfo>({
     latitude: 0,
@@ -71,6 +68,11 @@ export default function Index() {
     };
 
     handleGetVehicleNumber();
+  }, []);
+
+  useEffect(() => {
+    initBackgroundLocation();
+    initBackgroundNotification();
   }, []);
 
   const handleGetLocation = () => {
@@ -143,6 +145,10 @@ export default function Index() {
   useEffect(() => {
     checkPermissions().then((permissions) => {
       setHasLocationPermission(permissions.hasLocationPermission);
+
+      if (permissions.hasLocationPermission === false) {
+        requestLocationPermission();
+      }
     });
   }, []);
 
@@ -181,21 +187,20 @@ export default function Index() {
     handleGetLocalUpdateInterval();
   }, []);
 
-  console.log("updateInterval", updateInterval);
-
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1, height: "100%" }}
+      behavior={Platform.OS === "ios" ? "padding" : "position"}
+      style={{ flex: 1 }}
     >
-      <SafeAreaView className="h-full dark:bg-black bg-white">
+      <SafeAreaView className="h-full dark:bg-black bg-white border-2">
         <ScrollView
-          className="p-4"
+          className="p-4 border-2 h-[100px]"
           keyboardShouldPersistTaps="handled"
-          style={{ flex: 1 }}
+          style={{ flex: 1, flexDirection: "column" }}
           contentContainerStyle={{
             alignItems: "center",
             justifyContent: "center",
+            flexGrow: 1,
           }}
         >
           <Text className="text-sky-500">Location App</Text>
@@ -339,7 +344,7 @@ export default function Index() {
             </TouchableOpacity>
           )}
 
-          <Text className="dark:text-white">Set update interval (minutes)</Text>
+          <Text className="dark:text-white">Set update interval (seconds)</Text>
           <TextInput
             className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
             onChangeText={(text) => {

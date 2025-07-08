@@ -15,7 +15,11 @@ const checkPermissions = async () => {
 };
 
 const requestLocationPermission = async () => {
-  return await Location.requestForegroundPermissionsAsync();
+  const res = await Location.requestForegroundPermissionsAsync();
+
+  if (res.status !== "granted") return res;
+
+  return await Location.requestBackgroundPermissionsAsync();
 };
 
 const requestCameraPermission = async () => {
@@ -26,4 +30,9 @@ const requestMediaPermission = async () => {
   return await MediaLibrary.requestPermissionsAsync();
 };
 
-export { checkPermissions, requestLocationPermission, requestCameraPermission, requestMediaPermission };
+export {
+  checkPermissions,
+  requestCameraPermission,
+  requestLocationPermission,
+  requestMediaPermission,
+};

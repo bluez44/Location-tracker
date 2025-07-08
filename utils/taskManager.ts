@@ -28,7 +28,6 @@ const getRegisteredTasks = async () => {
 
 const unRegisteredLocationTask = async () => {
   let status;
-  if(!TaskManager.isTaskDefined(LOCATION_TASK_NAME)) return "Task is not registered";
   await TaskManager.unregisterTaskAsync(LOCATION_TASK_NAME)
     .then((res) => (status = JSON.stringify(res)))
     .catch((err) => (status = JSON.stringify(err)));
