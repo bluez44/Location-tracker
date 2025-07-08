@@ -33,6 +33,9 @@ import {
   View,
 } from "react-native";
 
+// initBackgroundLocation();
+// initBackgroundNotification();
+
 export default function Index() {
   const [locationInfor, setLocationInfor] = useState<LocationInfo>({
     latitude: 0,
@@ -68,11 +71,6 @@ export default function Index() {
     };
 
     handleGetVehicleNumber();
-  }, []);
-
-  useEffect(() => {
-    initBackgroundLocation();
-    initBackgroundNotification();
   }, []);
 
   const handleGetLocation = () => {
@@ -156,7 +154,7 @@ export default function Index() {
   const [isDistanceIntervalChanged, setIsDistanceIntervalChanged] =
     useState(false);
 
-  const [updateInterval, setUpdateInterval] = useState<any>(UPDATE_INTERVAL);
+  const [updateInterval, setUpdateInterval] = useState(UPDATE_INTERVAL);
   const [isUpdateIntervalChanged, setIsUpdateIntervalChanged] = useState(false);
 
   useLayoutEffect(() => {

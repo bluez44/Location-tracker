@@ -1,6 +1,7 @@
 import { LOCATION_TASK_NAME } from "@/constant/backgroundApp";
 import * as BackgroundTask from "expo-background-task";
 import * as TaskManager from "expo-task-manager";
+import { schedulePushNotification } from "./notification";
 
 const registerTask = async (tasks: string) => {
   let status;
@@ -21,7 +22,7 @@ const getRegisteredTasks = async () => {
   let task;
   await TaskManager.getRegisteredTasksAsync()
     .then((tasks) => (task = tasks))
-    .catch((err) => console.log(err));
+    .catch((err) => console.log("err", err));
 
   return task;
 };
@@ -29,8 +30,14 @@ const getRegisteredTasks = async () => {
 const unRegisteredLocationTask = async () => {
   let status;
   await TaskManager.unregisterTaskAsync(LOCATION_TASK_NAME)
-    .then((res) => (status = JSON.stringify(res)))
-    .catch((err) => (status = JSON.stringify(err)));
+    .then((res) => {
+      status = JSON.stringify(res);
+      schedulePushNotification("Location task unregistered sucessed", status);
+    })
+    .catch((err) => {
+      status = JSON.stringify(err);
+      schedulePushNotification("Location task unregistered failed", status);
+    });
 
   return status;
 };

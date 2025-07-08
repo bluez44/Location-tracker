@@ -33,39 +33,39 @@ const initBackgroundLocation = async () => {
         }
 
         if (data) {
-          // const currentLocation = data.locations[0].coords;
+          const currentLocation = data.locations[0].coords;
 
-          // saveToStorage(LAST_LOCATION_KEY, currentLocation, 0);
+          saveToStorage(LAST_LOCATION_KEY, currentLocation, 0);
 
-          // schedulePushNotification(
-          //   "Get location success",
-          //   `Latitude: ${currentLocation.latitude}\nLongitude: ${currentLocation.longitude} \nDate: ${new Date(data.locations[0].timestamp).toString()} \nSpeed: ${currentLocation.speed} \nAccuracy: ${currentLocation.accuracy}`
-          // );
+          schedulePushNotification(
+            "Get location success",
+            `Latitude: ${currentLocation.latitude}\nLongitude: ${currentLocation.longitude} \nDate: ${new Date(data.locations[0].timestamp).toString()} \nSpeed: ${currentLocation.speed} \nAccuracy: ${currentLocation.accuracy}`
+          );
 
-          // const res = await loadFromStorage(VEHICLE_NUMBER);
-          // let vehicleNumber;
-          // if (res.name === VEHICLE_NUMBER) vehicleNumber = res.value;
+          const res = await loadFromStorage(VEHICLE_NUMBER);
+          let vehicleNumber;
+          if (res.name === VEHICLE_NUMBER) vehicleNumber = res.value;
 
-          // try {
-          //   const res = await saveLocationInBackground(
-          //     currentLocation.latitude,
-          //     currentLocation.longitude,
-          //     currentLocation.heading,
-          //     currentLocation.speed,
-          //     data.locations[0].timestamp,
-          //     vehicleNumber
-          //   );
+          try {
+            const res = await saveLocationInBackground(
+              currentLocation.latitude,
+              currentLocation.longitude,
+              currentLocation.heading,
+              currentLocation.speed,
+              data.locations[0].timestamp,
+              vehicleNumber
+            );
 
-          //   schedulePushNotification(
-          //     "Update location success",
-          //     JSON.stringify(res.message)
-          //   );
-          // } catch (error: any) {
-          //   console.error(
-          //     "Failed to update location in background:",
-          //     error.message
-          //   );
-          // }
+            schedulePushNotification(
+              "Update location success",
+              JSON.stringify(res.message)
+            );
+          } catch (error: any) {
+            console.error(
+              "Failed to update location in background:",
+              error.message
+            );
+          }
         }
       }
     );
@@ -118,7 +118,7 @@ const startBackgroundLocation = async (
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.High,
       timeInterval: (timer || UPDATE_INTERVAL) * 1000, // in milliseconds
-      // distanceInterval: distanceInterval || DISTANCE_INTERVAL, // in meters
+      distanceInterval: distanceInterval || DISTANCE_INTERVAL, // in meters
       showsBackgroundLocationIndicator: true,
       foregroundService: {
         notificationTitle: "Location Tracking In Background",

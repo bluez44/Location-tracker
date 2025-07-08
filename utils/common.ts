@@ -13,7 +13,7 @@ const convertSecondToTime = (seconds: number) => {
 };
 
 const convertMeterToTime = (meter: number) => {
-  if (meter < 1000) return meter + "m";
+  if (meter <= 1000) return meter + "m";
   const kilometer = Math.floor(meter / 1000);
   const remainingMeter = meter % 1000;
   return `${kilometer}km ${remainingMeter}m`;

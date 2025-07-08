@@ -42,7 +42,7 @@ export default function Layout() {
 
     const responseListener =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log(response);
+        console.log("response", response);
       });
 
     return () => {
