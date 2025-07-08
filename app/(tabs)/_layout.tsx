@@ -1,5 +1,6 @@
 import { registerForPushNotificationsAsync } from "@/utils/notification";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import { Tabs } from "expo-router";
 import { useEffect, useState } from "react";
@@ -14,14 +15,6 @@ export default function Layout() {
       shouldShowList: true,
     }),
   });
-
-  // Notifications.scheduleNotificationAsync({
-  //   content: {
-  //     title: "Test noti",
-  //     body: "Test noti!",
-  //   },
-  //   trigger: null,
-  // });
 
   const [expoPushToken, setExpoPushToken] = useState("");
   const [channels, setChannels] = useState<Notifications.NotificationChannel[]>(
@@ -57,6 +50,17 @@ export default function Layout() {
       responseListener.remove();
     };
   }, []);
+
+  useEffect(() => {
+    const getLocationPermission = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== "granted") return;
+
+      const res = await Location.requestBackgroundPermissionsAsync();
+    };
+  });
+
   return (
     <Tabs
       screenOptions={{

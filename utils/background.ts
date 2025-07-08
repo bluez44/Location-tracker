@@ -112,7 +112,7 @@ const startBackgroundLocation = async (
       showsBackgroundLocationIndicator: true,
       foregroundService: {
         notificationTitle: "Location Tracking In Background",
-        notificationBody: `Location will auto save in ${timer | UPDATE_INTERVAL} minutes or when distance difference is ${distanceInterval || DISTANCE_INTERVAL} meters`,
+        notificationBody: `Location will auto save in ${timer || UPDATE_INTERVAL} minutes or when distance difference is ${distanceInterval || DISTANCE_INTERVAL} meters`,
         notificationColor: "#fff",
       },
     });
