@@ -127,7 +127,6 @@ export default function Index() {
   useLayoutEffect(() => {
     const timer = setInterval(() => {
       if (getLocationTimer <= 0) {
-        handleGetLocation();
         setGetLocationTimer(GET_INTERVAL); // Reset timer to 10 seconds
         return;
       }
@@ -261,8 +260,7 @@ export default function Index() {
               </Text>
             )}
             <Text className="mt-4 dark:text-white">
-              Get location every {GET_INTERVAL} seconds. Time left:{" "}
-              {getLocationTimer} seconds
+              Get location after: {getLocationTimer} seconds
             </Text>
             {isGettingLocation ? (
               <View className="my-4">

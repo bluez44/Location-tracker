@@ -37,9 +37,11 @@ const initBackgroundLocation = async () => {
 
           saveToStorage(LAST_LOCATION_KEY, currentLocation, 0);
 
+          const currentTime = new Date();
+
           schedulePushNotification(
             "Get location success",
-            `Latitude: ${currentLocation.latitude}\nLongitude: ${currentLocation.longitude} \nDate: ${new Date(data.locations[0].timestamp).toString()} \nSpeed: ${currentLocation.speed} \nAccuracy: ${currentLocation.accuracy}`
+            `Latitude: ${currentLocation.latitude}\nLongitude: ${currentLocation.longitude} \nDate: ${new Date(data.locations[0].timestamp).toString()} \nSpeed: ${currentLocation.speed}\nCurrent time: ${currentTime.toString()}`
           );
 
           const res = await loadFromStorage(VEHICLE_NUMBER);
@@ -54,11 +56,6 @@ const initBackgroundLocation = async () => {
               currentLocation.speed,
               data.locations[0].timestamp,
               vehicleNumber
-            );
-
-            schedulePushNotification(
-              "Update location success",
-              JSON.stringify(res.message)
             );
           } catch (error: any) {
             console.error(
@@ -92,7 +89,8 @@ const initBackgroundNotification = async () => {
 };
 
 const stopBackgroundLocation = async () => {
-  await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+  const res = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
+  if (res) await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
 };
 
 const startBackgroundLocation = async (
@@ -121,7 +119,6 @@ const startBackgroundLocation = async (
 
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.Highest,
-      deferredUpdatesInterval: 5000,
       timeInterval: (timer || UPDATE_INTERVAL) * 1000, // in milliseconds
       distanceInterval: distanceInterval, // in meters
       showsBackgroundLocationIndicator: true,
