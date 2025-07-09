@@ -91,18 +91,24 @@ const initBackgroundNotification = async () => {
   }
 };
 
+const stopBackgroundLocation = async () => {
+  await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+};
+
 const startBackgroundLocation = async (
   distanceInterval: number,
   timer: number
 ) => {
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status !== "granted") {
+    schedulePushNotification("Foreground location permission", "not granted");
     return;
   }
 
   const { status: bgStatus } =
     await Location.requestBackgroundPermissionsAsync();
   if (bgStatus !== "granted") {
+    schedulePushNotification("Background location permission", "not granted");
     return;
   }
 
@@ -116,14 +122,17 @@ const startBackgroundLocation = async (
     );
 
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-      accuracy: Location.Accuracy.High,
+      accuracy: Location.Accuracy.Highest,
+      deferredUpdatesInterval: 5000,
       timeInterval: (timer || UPDATE_INTERVAL) * 1000, // in milliseconds
       distanceInterval: distanceInterval || DISTANCE_INTERVAL, // in meters
       showsBackgroundLocationIndicator: true,
+      mayShowUserSettingsDialog: true,
       foregroundService: {
         notificationTitle: "Location Tracking In Background",
         notificationBody: `Location will auto save every ${convertedTime} or when distance difference is ${convertedDistance}`,
         notificationColor: "#fff",
+        killServiceOnDestroy: false,
       },
     });
   }
@@ -140,4 +149,5 @@ export {
   initBackgroundNotification,
   startBackgroundLocation,
   startBackgroundNotification,
+  stopBackgroundLocation,
 };
