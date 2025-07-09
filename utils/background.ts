@@ -3,7 +3,7 @@ import {
   LOCATION_TASK_NAME,
 } from "@/constant/backgroundApp";
 import { VEHICLE_NUMBER } from "@/constant/info";
-import { DISTANCE_INTERVAL, UPDATE_INTERVAL } from "@/constant/interval";
+import { UPDATE_INTERVAL } from "@/constant/interval";
 import { LAST_LOCATION_KEY } from "@/constant/location";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import * as Location from "expo-location";
@@ -92,7 +92,7 @@ const initBackgroundNotification = async () => {
 };
 
 const startBackgroundLocation = async (
-  distanceInterval: number,
+  distanceInterval: number = 0,
   timer: number
 ) => {
   const { status } = await Location.requestForegroundPermissionsAsync();
@@ -111,14 +111,12 @@ const startBackgroundLocation = async (
 
   if (!isRegistered) {
     const convertedTime = convertSecondToTime(timer || UPDATE_INTERVAL);
-    const convertedDistance = convertMeterToTime(
-      distanceInterval || DISTANCE_INTERVAL
-    );
+    const convertedDistance = convertMeterToTime(distanceInterval);
 
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.High,
       timeInterval: (timer || UPDATE_INTERVAL) * 1000, // in milliseconds
-      distanceInterval: distanceInterval || DISTANCE_INTERVAL, // in meters
+      distanceInterval: distanceInterval, // in meters
       showsBackgroundLocationIndicator: true,
       foregroundService: {
         notificationTitle: "Location Tracking In Background",

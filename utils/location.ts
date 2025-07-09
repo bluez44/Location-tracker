@@ -2,17 +2,18 @@ import * as Location from "expo-location";
 
 import instance from "@/api";
 import { AxiosError } from "axios";
+import { schedulePushNotification } from "./notification";
 
 export const getUserLocation = async () => {
   let errorMessage: string | null = null;
   let longi: number | null = null;
   let lati: number | null = null;
   let location: any = null;
-  //   const { coords } = await Location.getCurrentPositionAsync({});
-  const lastKnownLocation = await Location.getLastKnownPositionAsync({});
+  const { coords } = await Location.getCurrentPositionAsync({});
+  // const lastKnownLocation = await Location.getLastKnownPositionAsync({});
 
-  if (lastKnownLocation && lastKnownLocation.coords) {
-    const { latitude, longitude } = lastKnownLocation.coords;
+  if (coords) {
+    const { latitude, longitude } = coords;
     lati = latitude;
     longi = longitude;
 
@@ -96,7 +97,7 @@ export const saveLocationInBackground = async (
   heading: number | null,
   speed: number | null,
   saveTimestamp: number,
-  vehicleNumber: any,
+  vehicleNumber: any
 ) => {
   try {
     if (!latitude || !longitude) {
@@ -110,6 +111,10 @@ export const saveLocationInBackground = async (
     const userId = 1; // Replace with actual user ID if needed
 
     if (latitude === null || longitude === null) {
+      schedulePushNotification(
+        "Get location error",
+        "Latitude or longitude is null, skipping update."
+      );
       return;
     }
 
