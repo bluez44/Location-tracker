@@ -1,10 +1,7 @@
 import { NotificationPermissionsButton } from "@/components/PermissionsButton";
 import { VEHICLE_NUMBER } from "@/constant/info";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
-import {
-  getRegisteredTasks,
-  unRegisteredLocationTask,
-} from "@/utils/taskManager";
+import { getRegisteredTasks } from "@/utils/taskManager";
 import React, { useLayoutEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -19,7 +16,6 @@ import {
 
 const config = () => {
   const [tasks, setTasks] = useState<any>(null);
-  const [unregisterTaskStatus, setUnregisterTaskStatus] = useState<any>(null);
 
   const [vehicleNumber, setVehicleNumber] = useState<string>("");
   const [isVehicleNumChanged, setIsVehicleNumChanged] =
@@ -27,7 +23,6 @@ const config = () => {
 
   const clearAlltaskInfor = () => {
     setTasks(null);
-    setUnregisterTaskStatus(null);
   };
 
   useLayoutEffect(() => {
@@ -76,23 +71,6 @@ const config = () => {
             ) : (
               <Text className="dark:text-white">No task found</Text>
             ))}
-          <TouchableOpacity
-            className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-            onPress={async () => {
-              const status = await unRegisteredLocationTask();
-
-              setUnregisterTaskStatus(status);
-            }}
-          >
-            <Text className="text-white font-bold">
-              Unregister location tasks
-            </Text>
-          </TouchableOpacity>
-          {unregisterTaskStatus && (
-            <Text className="dark:text-white">
-              Task status: {unregisterTaskStatus}
-            </Text>
-          )}
           <TouchableOpacity
             className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
             onPress={clearAlltaskInfor}

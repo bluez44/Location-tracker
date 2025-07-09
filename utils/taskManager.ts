@@ -1,14 +1,9 @@
 import { LOCATION_TASK_NAME } from "@/constant/backgroundApp";
-import * as BackgroundTask from "expo-background-task";
 import * as TaskManager from "expo-task-manager";
 import { schedulePushNotification } from "./notification";
 
 const registerTask = async (tasks: string) => {
   let status;
-  await TaskManager.isTaskRegisteredAsync(tasks).then(async (res) => {
-    if (!res) await BackgroundTask.registerTaskAsync(tasks);
-  });
-
   await TaskManager.isTaskRegisteredAsync(tasks).then((res) => {
     if (res === true) status = "Registered task";
 

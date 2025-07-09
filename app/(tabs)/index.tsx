@@ -9,8 +9,6 @@ import {
 import { LocationInfo } from "@/models/LocationInfo";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import {
-  initBackgroundLocation,
-  initBackgroundNotification,
   startBackgroundLocation,
   stopBackgroundLocation,
 } from "@/utils/background";
@@ -33,9 +31,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-initBackgroundLocation();
-initBackgroundNotification();
 
 export default function Index() {
   const [locationInfor, setLocationInfor] = useState<LocationInfo>({
@@ -338,7 +333,6 @@ export default function Index() {
               className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
               onPress={async () => {
                 await stopBackgroundLocation();
-                await unRegisteredLocationTask();
                 await startBackgroundLocation(distanceInterval, updateInterval);
                 saveToStorage(UPDATE_INTERVAL_KEY, updateInterval, 0);
                 saveToStorage(DISTANCE_INTERVAL_KEY, distanceInterval, 0);
@@ -348,6 +342,16 @@ export default function Index() {
               <Text className="text-white font-bold">Save update interval</Text>
             </TouchableOpacity>
           )}
+          <TouchableOpacity
+            className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
+            onPress={async () => {
+              await stopBackgroundLocation();
+            }}
+          >
+            <Text className="text-white font-bold">
+              Stop background location
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
     </KeyboardAvoidingView>

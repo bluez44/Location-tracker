@@ -16,6 +16,11 @@ import { schedulePushNotification } from "./notification";
 
 const initBackgroundLocation = async () => {
   if (!TaskManager.isTaskDefined(LOCATION_TASK_NAME)) {
+    schedulePushNotification(
+      "Init background location",
+      "Init background location"
+    );
+
     TaskManager.defineTask(
       LOCATION_TASK_NAME,
       async ({
@@ -121,11 +126,13 @@ const startBackgroundLocation = async (
       accuracy: Location.Accuracy.Highest,
       timeInterval: (timer || UPDATE_INTERVAL) * 1000, // in milliseconds
       distanceInterval: distanceInterval, // in meters
+      deferredUpdatesDistance: 0,
+      deferredUpdatesInterval: 0,
       showsBackgroundLocationIndicator: true,
       mayShowUserSettingsDialog: true,
       foregroundService: {
         notificationTitle: "Location Tracking In Background",
-        notificationBody: `Location will auto save every ${convertedTime} or when distance difference is ${convertedDistance}`,
+        notificationBody: `Location will auto save every ${convertedTime} or 00000 when distance difference is ${convertedDistance}`,
         notificationColor: "#fff",
         killServiceOnDestroy: false,
       },
