@@ -1,6 +1,5 @@
 import { Stack } from "expo-router";
 
-import "@/utils/taskManagerDefined";
 import "../global.css";
 
 export default function RootLayout() {

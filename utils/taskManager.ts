@@ -31,7 +31,7 @@ const unRegisteredLocationTask = async () => {
   let status;
   await TaskManager.unregisterTaskAsync(LOCATION_TASK_NAME)
     .then((res) => {
-      status = JSON.stringify(res);
+      status = "Unregistered task";
       schedulePushNotification("Location task unregistered sucessed", status);
     })
     .catch((err) => {

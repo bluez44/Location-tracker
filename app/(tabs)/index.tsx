@@ -12,6 +12,7 @@ import {
   initBackgroundLocation,
   initBackgroundNotification,
   startBackgroundLocation,
+  stopBackgroundLocation,
 } from "@/utils/background";
 import { getUserLocation, saveLocation } from "@/utils/location";
 import {
@@ -33,8 +34,8 @@ import {
   View,
 } from "react-native";
 
-// initBackgroundLocation();
-// initBackgroundNotification();
+initBackgroundLocation();
+initBackgroundNotification();
 
 export default function Index() {
   const [locationInfor, setLocationInfor] = useState<LocationInfo>({
@@ -151,11 +152,9 @@ export default function Index() {
   }, []);
 
   const [distanceInterval, setDistanceInterval] = useState(DISTANCE_INTERVAL);
-  const [isDistanceIntervalChanged, setIsDistanceIntervalChanged] =
-    useState(false);
-
   const [updateInterval, setUpdateInterval] = useState(UPDATE_INTERVAL);
-  const [isUpdateIntervalChanged, setIsUpdateIntervalChanged] = useState(false);
+
+  const [isConfigChanged, setIsConfigChanged] = useState(false);
 
   useLayoutEffect(() => {
     const handleGetLocaldistanceInterval = async () => {
@@ -192,7 +191,7 @@ export default function Index() {
     >
       <SafeAreaView className="h-full dark:bg-black bg-white border-2">
         <ScrollView
-          className="p-4 border-2 h-[100px]"
+          className="p-4"
           keyboardShouldPersistTaps="handled"
           style={{ flex: 1, flexDirection: "column" }}
           contentContainerStyle={{
@@ -301,7 +300,7 @@ export default function Index() {
           )}
           {updateLocationDate && (
             <Text className="mt-4 dark:text-white">
-              Location last get at:{" "}
+              Location last save at:{" "}
               {updateLocationDate
                 ? updateLocationDate.toLocaleTimeString()
                 : "Not updated yet"}
@@ -320,46 +319,32 @@ export default function Index() {
           <TextInput
             className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
             onChangeText={(text) => {
-              setDistanceInterval(Number(text));
+              setDistanceInterval(Number(text) || 0);
             }}
-            onEndEditing={() => setIsDistanceIntervalChanged(true)}
-            value={distanceInterval.toString()}
+            onEndEditing={() => setIsConfigChanged(true)}
+            value={distanceInterval.toString() || ""}
             keyboardType="numeric"
           />
-          {isDistanceIntervalChanged && (
-            <TouchableOpacity
-              className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
-              onPress={async () => {
-                await unRegisteredLocationTask();
-                await startBackgroundLocation(distanceInterval, updateInterval);
-                saveToStorage(DISTANCE_INTERVAL_KEY, distanceInterval, 0);
-                setIsDistanceIntervalChanged(false);
-              }}
-            >
-              <Text className="text-white font-bold">
-                Save distance interval
-              </Text>
-            </TouchableOpacity>
-          )}
-
           <Text className="dark:text-white">Set update interval (seconds)</Text>
           <TextInput
             className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
             onChangeText={(text) => {
-              setUpdateInterval(parseFloat(Number(text).toFixed(2)));
+              setUpdateInterval(parseFloat(Number(text).toFixed(2)) || 0);
             }}
-            onEndEditing={() => setIsUpdateIntervalChanged(true)}
-            value={updateInterval.toString()}
+            onEndEditing={() => setIsConfigChanged(true)}
+            value={updateInterval.toString() || ""}
             keyboardType="number-pad"
           />
-          {isUpdateIntervalChanged && (
+          {isConfigChanged && (
             <TouchableOpacity
               className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
               onPress={async () => {
+                await stopBackgroundLocation();
                 await unRegisteredLocationTask();
                 await startBackgroundLocation(distanceInterval, updateInterval);
                 saveToStorage(UPDATE_INTERVAL_KEY, updateInterval, 0);
-                setIsUpdateIntervalChanged(false);
+                saveToStorage(DISTANCE_INTERVAL_KEY, distanceInterval, 0);
+                setIsConfigChanged(false);
               }}
             >
               <Text className="text-white font-bold">Save update interval</Text>
