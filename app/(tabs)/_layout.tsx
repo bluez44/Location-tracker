@@ -51,16 +51,6 @@ export default function Layout() {
     };
   }, []);
 
-  useEffect(() => {
-    const getLocationPermission = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-
-      if (status !== "granted") return;
-
-      const res = await Location.requestBackgroundPermissionsAsync();
-    };
-  });
-
   return (
     <Tabs
       screenOptions={{

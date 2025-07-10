@@ -17,7 +17,7 @@ import {
   checkPermissions,
   requestLocationPermission,
 } from "@/utils/permissions";
-import { unRegisteredLocationTask } from "@/utils/taskManager";
+import { getIsDefinedTask } from "@/utils/taskManager";
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -178,6 +178,14 @@ export default function Index() {
     handleGetLocalUpdateInterval();
   }, []);
 
+  const [isDefinedTask, setIsDefinedTask] = useState(false);
+
+  useEffect(() => {
+    const res = getIsDefinedTask();
+
+    setIsDefinedTask(res);
+  }, []);
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "position"}
@@ -217,6 +225,10 @@ export default function Index() {
               Location: {locationInfor.location[0].formattedAddress}
             </Text>
           )}
+          <Text className="dark:text-white">
+            {" "}
+            Is background location task defined: {isDefinedTask ? "Yes" : "No"}
+          </Text>
           <View style={{ marginTop: 20 }}>
             {hasLocationPermission ? (
               <Text className="text-green-500">Location is accepted</Text>
@@ -339,7 +351,9 @@ export default function Index() {
                 setIsConfigChanged(false);
               }}
             >
-              <Text className="text-white font-bold">Save update interval</Text>
+              <Text className="text-white font-bold">
+                Save interval changes
+              </Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity

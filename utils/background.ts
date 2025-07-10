@@ -16,11 +16,6 @@ import { schedulePushNotification } from "./notification";
 
 const initBackgroundLocation = async () => {
   if (!TaskManager.isTaskDefined(LOCATION_TASK_NAME)) {
-    schedulePushNotification(
-      "Init background location",
-      "Init background location"
-    );
-
     TaskManager.defineTask(
       LOCATION_TASK_NAME,
       async ({
