@@ -33,13 +33,6 @@ const initBackgroundLocation = async () => {
         if (data) {
           const currentLocation = data.locations[0].coords;
 
-          Alert.alert(
-            "Location Received",
-            `Latitude: ${currentLocation.latitude}\nLongitude: ${currentLocation.longitude} \nDate: ${new Date(
-              data.locations[0].timestamp
-            ).toString()} \nSpeed: ${currentLocation.speed}`
-          );
-
           const currentTime = new Date();
           // --- Save to location history ---
           try {
@@ -78,10 +71,6 @@ const initBackgroundLocation = async () => {
               vehicleNumber
             );
 
-            schedulePushNotification(
-              "Update location success",
-              JSON.stringify(res.message)
-            );
           } catch (error: any) {
             console.error(
               "Failed to update location in background:",
