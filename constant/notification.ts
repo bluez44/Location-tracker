@@ -1,0 +1,3 @@
+const DISMISS_TIMEOUT = 5000;
+
+export { DISMISS_TIMEOUT };

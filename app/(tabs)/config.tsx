@@ -1,4 +1,3 @@
-import { NotificationPermissionsButton } from "@/components/PermissionsButton";
 import { VEHICLE_NUMBER } from "@/constant/info";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import { getRegisteredTasks } from "@/utils/taskManager";
@@ -46,14 +45,13 @@ const config = () => {
         <ScrollView
           className="p-4"
           keyboardShouldPersistTaps="handled"
-          style={{ flex: 1, flexDirection: "column" }}
+          style={{ flex: 1 }}
           contentContainerStyle={{
             alignItems: "center",
             justifyContent: "center",
             flexGrow: 1,
           }}
         >
-          <NotificationPermissionsButton />
           <TouchableOpacity
             className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
             onPress={async () => {
@@ -63,6 +61,7 @@ const config = () => {
           >
             <Text className="text-white font-bold">Get registered tasks</Text>
           </TouchableOpacity>
+
           {tasks &&
             (tasks.length > 0 ? (
               <Text className="dark:text-white">

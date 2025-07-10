@@ -1,3 +1,4 @@
+import { DISMISS_TIMEOUT } from "@/constant/notification";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
@@ -15,12 +16,20 @@ async function schedulePushNotification(titile: string, body: string) {
 }
 
 async function schedulePushNotificationWithOnlyData(data: Record<string, any>) {
-  await Notifications.scheduleNotificationAsync({
+  const notificationId = await Notifications.scheduleNotificationAsync({
     content: {
       data: data,
     },
     trigger: null,
   });
+
+  setTimeout(async () => {
+    try {
+      await Notifications.dismissNotificationAsync(notificationId);
+    } catch (error) {
+      console.log("Error dismissing notification:", error);
+    }
+  }, DISMISS_TIMEOUT);
 }
 
 async function registerForPushNotificationsAsync() {

@@ -81,7 +81,7 @@ export default function Layout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: "History",
+          title: "Locations History",
           tabBarIcon: ({ color }) => (
             <FontAwesome size={28} name="history" color={color} />
           ),

@@ -3,9 +3,9 @@ import {
   startBackgroundNotification,
 } from "@/utils/background";
 import React from "react";
-import { Button, StyleSheet, View } from "react-native";
+import { Button, StyleSheet, TouchableOpacity, View, Text } from "react-native";
 
-const LocationPermissionsButton = ({ timer } : { timer: number}) => (
+const LocationPermissionsButton = ({ timer }: { timer: number }) => (
   <View style={styles.container}>
     <Button
       title="Enable location in background"
@@ -16,10 +16,9 @@ const LocationPermissionsButton = ({ timer } : { timer: number}) => (
 
 const NotificationPermissionsButton = () => (
   <View style={styles.container}>
-    <Button
-      title="Enable location in background"
-      onPress={async () => await startBackgroundNotification()}
-    />
+    <TouchableOpacity onPress={async () => await startBackgroundNotification()}>
+      <Text>Enable notification in background</Text>
+    </TouchableOpacity>
   </View>
 );
 
@@ -29,7 +28,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginVertical: 10,
-    display: 'none'
+    display: "none",
+    backgroundColor: "red",
   },
 });
 

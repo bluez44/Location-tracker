@@ -3,7 +3,6 @@ import * as Location from "expo-location";
 import instance from "@/api";
 import { AxiosError } from "axios";
 import { schedulePushNotification } from "./notification";
-import { UPDATE_INTERVAL } from "@/constant/interval";
 
 export const getUserLocation = async () => {
   let errorMessage: string | null = null;
@@ -14,8 +13,6 @@ export const getUserLocation = async () => {
     accuracy: Location.Accuracy.Highest,
     mayShowUserSettingsDialog: true,
   });
-
-  schedulePushNotification("Get location", "Get location successfully");
 
   if (coords) {
     const { latitude, longitude } = coords;
