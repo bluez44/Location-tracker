@@ -1,6 +1,5 @@
 import { registerForPushNotificationsAsync } from "@/utils/notification";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import { Tabs } from "expo-router";
 import { useEffect, useState } from "react";
@@ -76,6 +75,15 @@ export default function Layout() {
           title: "Config",
           tabBarIcon: ({ color }) => (
             <FontAwesome size={28} name="cog" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: "History",
+          tabBarIcon: ({ color }) => (
+            <FontAwesome size={28} name="history" color={color} />
           ),
         }}
       />

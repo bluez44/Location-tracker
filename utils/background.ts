@@ -3,14 +3,12 @@ import {
   LOCATION_TASK_NAME,
 } from "@/constant/backgroundApp";
 import { VEHICLE_NUMBER } from "@/constant/info";
-import { UPDATE_INTERVAL } from "@/constant/interval";
-import { LAST_LOCATION_KEY } from "@/constant/location";
+import { LOCATION_HISTORY_KEY } from "@/constant/location";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import { Alert } from "react-native";
-import { convertMeterToTime, convertSecondToTime } from "./common";
 import { saveLocationInBackground } from "./location";
 import { schedulePushNotification } from "./notification";
 
@@ -35,14 +33,29 @@ const initBackgroundLocation = async () => {
         if (data) {
           const currentLocation = data.locations[0].coords;
 
-          saveToStorage(LAST_LOCATION_KEY, currentLocation, 0);
-
           const currentTime = new Date();
-
-          schedulePushNotification(
-            "Get location success",
-            `Latitude: ${currentLocation.latitude}\nLongitude: ${currentLocation.longitude} \nDate: ${new Date(data.locations[0].timestamp).toString()} \nSpeed: ${currentLocation.speed}\nCurrent time: ${currentTime.toString()}`
-          );
+          // --- Save to location history ---
+          try {
+            // Load existing history
+            const historyRes = await loadFromStorage(LOCATION_HISTORY_KEY);
+            let history = [];
+            if (historyRes && Array.isArray(historyRes.value)) {
+              history = historyRes.value;
+            }
+            // Append new location with timestamp
+            history.push({
+              latitude: currentLocation.latitude,
+              longitude: currentLocation.longitude,
+              timestamp: data.locations[0].timestamp,
+              speed: currentLocation.speed,
+              heading: currentLocation.heading,
+              savedTime: currentTime.toString(),
+            });
+            // Save updated history
+            saveToStorage(LOCATION_HISTORY_KEY, history, 0);
+          } catch (e) {
+            console.error("Failed to save location history:", e);
+          }
 
           const res = await loadFromStorage(VEHICLE_NUMBER);
           let vehicleNumber;
@@ -95,7 +108,7 @@ const stopBackgroundLocation = async () => {
 
 const startBackgroundLocation = async (
   distanceInterval: number = 0,
-  timer: number
+  timer: number = 0
 ) => {
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status !== "granted") {
@@ -114,12 +127,9 @@ const startBackgroundLocation = async (
     await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
 
   if (!isRegistered) {
-    const convertedTime = convertSecondToTime(timer || UPDATE_INTERVAL);
-    const convertedDistance = convertMeterToTime(distanceInterval);
-
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
       accuracy: Location.Accuracy.Highest,
-      timeInterval: (timer || UPDATE_INTERVAL) * 1000, // in milliseconds
+      timeInterval: timer * 1000, // in milliseconds
       distanceInterval: distanceInterval, // in meters
       deferredUpdatesDistance: 0,
       deferredUpdatesInterval: 0,
@@ -127,7 +137,7 @@ const startBackgroundLocation = async (
       mayShowUserSettingsDialog: true,
       foregroundService: {
         notificationTitle: "Location Tracking In Background",
-        notificationBody: `Location will auto save every ${convertedTime} or 00000 when distance difference is ${convertedDistance}`,
+        notificationBody: `Location will auto save in background`,
         notificationColor: "#fff",
         killServiceOnDestroy: false,
       },

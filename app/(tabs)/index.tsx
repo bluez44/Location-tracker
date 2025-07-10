@@ -6,6 +6,8 @@ import {
   UPDATE_INTERVAL,
   UPDATE_INTERVAL_KEY,
 } from "@/constant/interval";
+import { useCheckBatteryOptimization } from "@/hook/useCheckBatteryOptimization";
+import { Picker } from "@react-native-picker/picker";
 import { LocationInfo } from "@/models/LocationInfo";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import {
@@ -69,6 +71,10 @@ export default function Index() {
     handleGetVehicleNumber();
   }, []);
 
+  useEffect(() => {
+    useCheckBatteryOptimization();
+  }, []);
+
   const handleGetLocation = () => {
     setIsGettingLocation(true);
     getUserLocation()
@@ -96,6 +102,8 @@ export default function Index() {
         setIsGettingLocation(false);
       });
   };
+
+  const [intervalType, setIntervalType] = useState<"time" | "distance">("time");
 
   const handleSaveLocation = () => {
     const saveDate = new Date();
@@ -318,36 +326,68 @@ export default function Index() {
           ) : (
             <Text className="mt-2 text-red-500">{updateStatus}</Text>
           )}
-          <Text className="dark:text-white">
-            Set distance interval (meters)
-          </Text>
-          <TextInput
-            className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
-            onChangeText={(text) => {
-              setDistanceInterval(Number(text) || 0);
-            }}
-            onEndEditing={() => setIsConfigChanged(true)}
-            value={distanceInterval.toString() || ""}
-            keyboardType="numeric"
-          />
-          <Text className="dark:text-white">Set update interval (seconds)</Text>
-          <TextInput
-            className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
-            onChangeText={(text) => {
-              setUpdateInterval(parseFloat(Number(text).toFixed(2)) || 0);
-            }}
-            onEndEditing={() => setIsConfigChanged(true)}
-            value={updateInterval.toString() || ""}
-            keyboardType="number-pad"
-          />
+
+          <Text className="dark:text-white">Choose update mode</Text>
+          <View className="my-2 w-[200px] bg-sky-500 rounded">
+            <Picker
+              selectedValue={intervalType}
+              onValueChange={(value) => {
+                setIntervalType(value);
+                setIsConfigChanged(true);
+              }}
+              style={{ color: "white" }}
+              dropdownIconColor="white"
+            >
+              <Picker.Item label="Time Interval" value="time" />
+              <Picker.Item label="Distance Interval" value="distance" />
+            </Picker>
+          </View>
+
+          {/* Show only the relevant input */}
+          {intervalType === "distance" && (
+            <>
+              <Text className="dark:text-white">
+                Set distance interval (meters)
+              </Text>
+              <TextInput
+                className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
+                onChangeText={(text) => {
+                  setDistanceInterval(Number(text) || 0);
+                }}
+                onEndEditing={() => setIsConfigChanged(true)}
+                value={distanceInterval.toString() || ""}
+                keyboardType="numeric"
+              />
+            </>
+          )}
+          {intervalType === "time" && (
+            <>
+              <Text className="dark:text-white">
+                Set update interval (seconds)
+              </Text>
+              <TextInput
+                className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center text-white w-[200px] text-center"
+                onChangeText={(text) => {
+                  setUpdateInterval(parseFloat(Number(text).toFixed(2)) || 0);
+                }}
+                onEndEditing={() => setIsConfigChanged(true)}
+                value={updateInterval.toString() || ""}
+                keyboardType="number-pad"
+              />
+            </>
+          )}
+
           {isConfigChanged && (
             <TouchableOpacity
               className="my-4 bg-sky-500 p-2 rounded flex items-center justify-center"
               onPress={async () => {
                 await stopBackgroundLocation();
-                await startBackgroundLocation(distanceInterval, updateInterval);
-                saveToStorage(UPDATE_INTERVAL_KEY, updateInterval, 0);
-                saveToStorage(DISTANCE_INTERVAL_KEY, distanceInterval, 0);
+                // Only one interval is active, the other is 0
+                const dist = intervalType === "distance" ? distanceInterval : 0;
+                const time = intervalType === "time" ? updateInterval : 0;
+                await startBackgroundLocation(dist, time);
+                saveToStorage(UPDATE_INTERVAL_KEY, time, 0);
+                saveToStorage(DISTANCE_INTERVAL_KEY, dist, 0);
                 setIsConfigChanged(false);
               }}
             >
