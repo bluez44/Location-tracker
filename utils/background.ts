@@ -3,13 +3,13 @@ import {
   LOCATION_TASK_NAME,
 } from "@/constant/backgroundApp";
 import { VEHICLE_NUMBER } from "@/constant/info";
-import { LOCATION_HISTORY_KEY } from "@/constant/location";
+import { LAST_LOCATION_KEY, LOCATION_HISTORY_KEY } from "@/constant/location";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import { Alert } from "react-native";
-import { saveLocationInBackground } from "./location";
+import { calculateDistance, saveLocationInBackground } from "./location";
 import { schedulePushNotification } from "./notification";
 
 const initBackgroundLocation = async () => {
@@ -32,6 +32,27 @@ const initBackgroundLocation = async () => {
 
         if (data) {
           const currentLocation = data.locations[0].coords;
+
+          const lastSavedLocationRes = await loadFromStorage(LAST_LOCATION_KEY);
+          let lastSavedLocation;
+          if (
+            lastSavedLocationRes &&
+            lastSavedLocationRes.name === LAST_LOCATION_KEY
+          ) {
+            lastSavedLocation = lastSavedLocationRes.value;
+          }
+
+          if (
+            lastSavedLocation &&
+            calculateDistance(
+              lastSavedLocation.latitude,
+              lastSavedLocation.longitude,
+              currentLocation.latitude,
+              currentLocation.longitude
+            ) < 200 // 200 meters
+          ) {
+            return;
+          }
 
           const currentTime = new Date();
           // --- Save to location history ---
@@ -70,7 +91,6 @@ const initBackgroundLocation = async () => {
               data.locations[0].timestamp,
               vehicleNumber
             );
-
           } catch (error: any) {
             console.error(
               "Failed to update location in background:",
