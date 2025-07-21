@@ -1,5 +1,5 @@
 {
-  "name": "location-tracker",
+  "name": "location-tracker-release",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
