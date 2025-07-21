@@ -19,12 +19,9 @@ import {
 } from "@/utils/permissions";
 import { getIsDefinedTask } from "@/utils/taskManager";
 import { Picker } from "@react-native-picker/picker";
-import * as Device from "expo-device";
-import * as IntentLauncher from "expo-intent-launcher";
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -73,47 +70,6 @@ export default function Index() {
     handleGetVehicleNumber();
   }, []);
 
-  useEffect(() => {
-    const checkBatteryOptimization = async () => {
-      if (Platform.OS !== "android") return;
-
-      // Một số thiết bị Android yêu cầu kiểm tra battery optimization riêng
-      const manufacturer = (Device.manufacturer || "").toLowerCase();
-
-      // Với các hãng hay "giết app"
-      const knownAggressiveVendors = [
-        "xiaomi",
-        "oppo",
-        "vivo",
-        "realme",
-        "huawei",
-        "samsung",
-      ];
-
-      Alert.alert(
-        "Tắt tối ưu pin",
-        "Để ứng dụng theo dõi vị trí hoạt động ổn định trong nền, bạn cần tắt chế độ tiết kiệm pin hoặc tối ưu hóa pin cho ứng dụng này.",
-        [
-          {
-            text: "Mở cài đặt",
-            onPress: () => {
-              IntentLauncher.startActivityAsync(
-                IntentLauncher.ActivityAction
-                  .IGNORE_BATTERY_OPTIMIZATION_SETTINGS
-              );
-            },
-          },
-          {
-            text: "Bỏ qua",
-            style: "cancel",
-          },
-        ]
-      );
-    };
-
-    checkBatteryOptimization();
-  }, []);
-
   const handleGetLocation = () => {
     setIsGettingLocation(true);
     getUserLocation()
@@ -131,6 +87,7 @@ export default function Index() {
         setGetLocationStatus(
           data.errorMessage ? data.errorMessage : "Get location successfully"
         );
+        console.log("Location data:", data);
       })
       .catch((error) => {
         setGetLocationStatus("Error fetching location");

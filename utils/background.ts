@@ -30,6 +30,11 @@ const initBackgroundLocation = async () => {
           return;
         }
 
+        schedulePushNotification(
+          "Background Location",
+          `Background location task error:`
+        );
+
         if (data) {
           const currentLocation = data.locations[0].coords;
 
