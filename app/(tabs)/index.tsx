@@ -87,7 +87,6 @@ export default function Index() {
         setGetLocationStatus(
           data.errorMessage ? data.errorMessage : "Get location successfully"
         );
-        console.log("Location data:", data);
       })
       .catch((error) => {
         setGetLocationStatus("Error fetching location");

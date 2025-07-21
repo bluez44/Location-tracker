@@ -30,11 +30,6 @@ const initBackgroundLocation = async () => {
           return;
         }
 
-        schedulePushNotification(
-          "Background Location",
-          `Background location task error:`
-        );
-
         if (data) {
           const currentLocation = data.locations[0].coords;
 
@@ -45,6 +40,8 @@ const initBackgroundLocation = async () => {
             lastSavedLocationRes.name === LAST_LOCATION_KEY
           ) {
             lastSavedLocation = lastSavedLocationRes.value;
+          } else {
+            saveToStorage(LAST_LOCATION_KEY, currentLocation, 0);
           }
 
           if (
