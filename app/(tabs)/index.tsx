@@ -6,7 +6,6 @@ import {
   UPDATE_INTERVAL,
   UPDATE_INTERVAL_KEY,
 } from "@/constant/interval";
-import { LAST_LOCATION_KEY } from "@/constant/location";
 import { LocationInfo } from "@/models/LocationInfo";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import {
@@ -23,7 +22,6 @@ import { Picker } from "@react-native-picker/picker";
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -74,13 +72,6 @@ export default function Index() {
 
   const handleGetLocation = () => {
     setIsGettingLocation(true);
-
-    loadFromStorage(LAST_LOCATION_KEY).then((lastSavedLocationRes) => {
-      Alert.alert(
-        "Last Saved Location",
-        JSON.stringify(lastSavedLocationRes, null, 2)
-      );
-    });
 
     getUserLocation()
       .then((data) => {
@@ -134,15 +125,17 @@ export default function Index() {
 
   useLayoutEffect(() => {
     const timer = setInterval(() => {
-      if (getLocationTimer <= 0) {
-        setGetLocationTimer(GET_INTERVAL); // Reset timer to 10 seconds
-        return;
-      }
-      setGetLocationTimer((prev) => prev - 1);
+      setGetLocationTimer((prev) => {
+        if (prev <= 0) {
+          handleGetLocation();
+          return GET_INTERVAL; // Reset timer to 10 seconds
+        }
+        return prev - 1;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [getLocationTimer]);
+  }, []);
 
   useEffect(() => {
     handleGetLocation();
@@ -162,6 +155,34 @@ export default function Index() {
   const [updateInterval, setUpdateInterval] = useState(UPDATE_INTERVAL);
 
   const [isConfigChanged, setIsConfigChanged] = useState(false);
+
+  useEffect(() => {
+    const handleGetDistaceIntervalInStorage = async () => {
+      const distanceInterval: {
+        name: string;
+        value: number;
+      } = await loadFromStorage(DISTANCE_INTERVAL_KEY);
+      if (distanceInterval.name === DISTANCE_INTERVAL_KEY) {
+        setDistanceInterval(distanceInterval.value);
+      }
+    };
+
+    handleGetDistaceIntervalInStorage();
+  }, []);
+
+  useEffect(() => {
+    const handleGetUpdateIntervalInStorage = async () => {
+      const updateInterval: {
+        name: string;
+        value: number;
+      } = await loadFromStorage(UPDATE_INTERVAL_KEY);
+      if (updateInterval.name === UPDATE_INTERVAL_KEY) {
+        setUpdateInterval(updateInterval.value);
+      }
+    };
+
+    handleGetUpdateIntervalInStorage();
+  }, []);
 
   useLayoutEffect(() => {
     const handleGetLocaldistanceInterval = async () => {

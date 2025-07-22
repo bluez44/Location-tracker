@@ -57,7 +57,7 @@ const initBackgroundLocation = async () => {
               currentLocation.longitude
             ) < 200 // 200 meters
           ) {
-            schedulePushNotification(
+            console.log(
               "Location Update",
               "Location not changed significantly, skipping save."
             );

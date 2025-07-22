@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "location-tracker-debug",
-    "slug": "location-tracker-debug",
+    "name": "location tracker",
+    "slug": "location tracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
