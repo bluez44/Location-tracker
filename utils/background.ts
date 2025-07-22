@@ -39,9 +39,13 @@ const initBackgroundLocation = async () => {
             lastSavedLocationRes &&
             lastSavedLocationRes.name === LAST_LOCATION_KEY
           ) {
-            lastSavedLocation = lastSavedLocationRes.value;
+            lastSavedLocation = JSON.parse(lastSavedLocationRes.value);
           } else {
-            saveToStorage(LAST_LOCATION_KEY, currentLocation, 0);
+            saveToStorage(
+              LAST_LOCATION_KEY,
+              JSON.stringify(currentLocation),
+              0
+            );
           }
 
           if (
@@ -53,6 +57,10 @@ const initBackgroundLocation = async () => {
               currentLocation.longitude
             ) < 200 // 200 meters
           ) {
+            schedulePushNotification(
+              "Location Update",
+              "Location not changed significantly, skipping save."
+            );
             return;
           }
 

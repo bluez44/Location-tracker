@@ -6,6 +6,7 @@ import {
   UPDATE_INTERVAL,
   UPDATE_INTERVAL_KEY,
 } from "@/constant/interval";
+import { LAST_LOCATION_KEY } from "@/constant/location";
 import { LocationInfo } from "@/models/LocationInfo";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import {
@@ -22,6 +23,7 @@ import { Picker } from "@react-native-picker/picker";
 import { useEffect, useLayoutEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -72,6 +74,14 @@ export default function Index() {
 
   const handleGetLocation = () => {
     setIsGettingLocation(true);
+
+    loadFromStorage(LAST_LOCATION_KEY).then((lastSavedLocationRes) => {
+      Alert.alert(
+        "Last Saved Location",
+        JSON.stringify(lastSavedLocationRes, null, 2)
+      );
+    });
+
     getUserLocation()
       .then((data) => {
         if (!data) {
