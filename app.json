@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "location-tracker",
-    "slug": "location-tracker",
+    "name": "location-tracker-debug",
+    "slug": "location-tracker-debug",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -51,14 +51,7 @@
         }
       ],
       "expo-background-task",
-      "expo-web-browser",
-      [
-        "expo-maps",
-        {
-          "requestLocationPermission": true,
-          "locationPermission": "Allow $(PRODUCT_NAME) to use your location"
-        }
-      ]
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
