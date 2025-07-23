@@ -53,17 +53,19 @@ export default function Layout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "white",
-        tabBarActiveBackgroundColor: "#000",
-        tabBarStyle: { borderColor: "black" },
-        headerStyle: { backgroundColor: "#000" },
-        headerTitleStyle: { color: "white" },
+        headerStyle: {
+          backgroundColor: "#3b82f6",
+        },
+        headerTitleStyle: {
+          color: "#fff",
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Location Tracker",
+
           tabBarIcon: ({ color }) => (
             <FontAwesome size={28} name="home" color={color} />
           ),

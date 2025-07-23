@@ -1,33 +1,50 @@
 import * as Location from "expo-location";
 
 import instance from "@/api";
+import { LOCATION_TASK_NAME } from "@/constant/backgroundApp";
+import { LAST_LOCATION_KEY } from "@/constant/location";
+import { loadFromStorage } from "@/storage/ultils";
 import { AxiosError } from "axios";
 import { schedulePushNotification } from "./notification";
 
 export const getUserLocation = async () => {
+  const { status } = await Location.requestForegroundPermissionsAsync();
+  if (status !== "granted") return null;
+
   let errorMessage: string | null = null;
-  let longi: number | null = null;
-  let lati: number | null = null;
-  let location: any = null;
-  const { coords } = await Location.getCurrentPositionAsync({
-    accuracy: Location.Accuracy.Highest,
-    mayShowUserSettingsDialog: true,
-  });
 
-  if (coords) {
-    const { latitude, longitude } = coords;
-    lati = latitude;
-    longi = longitude;
+  if (await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME)) {
+    console.warn("Location updates are already running.");
+    const lastSavedLocationRes = await loadFromStorage(LAST_LOCATION_KEY);
 
-    const res = await Location.reverseGeocodeAsync({
+    if (
+      lastSavedLocationRes &&
+      lastSavedLocationRes.name === LAST_LOCATION_KEY
+    ) {
+      const { latitude, longitude } = JSON.parse(lastSavedLocationRes.value);
+
+      const location = await Location.reverseGeocodeAsync({
+        latitude,
+        longitude,
+      });
+
+      return { lati: latitude, longi: longitude, location, errorMessage };
+    }
+  } else {
+    const {
+      coords: { latitude, longitude },
+    } = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.Highest,
+      mayShowUserSettingsDialog: true,
+    });
+
+    const location = await Location.reverseGeocodeAsync({
       latitude,
       longitude,
     });
 
-    location = res;
+    return { lati: latitude, longi: longitude, location, errorMessage };
   }
-
-  return { lati, longi, location, errorMessage };
 };
 
 export const saveLocation = async (

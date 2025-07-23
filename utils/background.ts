@@ -10,7 +10,8 @@ import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import { Alert } from "react-native";
-import { saveLocationInBackground } from "./location";
+import { convertMeterToDistance, convertSecondToTime } from "./common";
+import { calculateDistance, saveLocationInBackground } from "./location";
 import { schedulePushNotification } from "./notification";
 
 const initBackgroundLocation = async () => {
@@ -49,24 +50,21 @@ const initBackgroundLocation = async () => {
             );
           }
 
-          console.log("last saved location", lastSavedLocation);
-          console.log("current location", currentLocation);
-
-          // if (
-          //   lastSavedLocation &&
-          //   calculateDistance(
-          //     lastSavedLocation.latitude,
-          //     lastSavedLocation.longitude,
-          //     currentLocation.latitude,
-          //     currentLocation.longitude
-          //   ) < 200 // 200 meters
-          // ) {
-          //   console.log(
-          //     "Location Update",
-          //     "Location not changed significantly, skipping save."
-          //   );
-          //   return;
-          // }
+          if (
+            lastSavedLocation &&
+            calculateDistance(
+              lastSavedLocation.latitude,
+              lastSavedLocation.longitude,
+              currentLocation.latitude,
+              currentLocation.longitude
+            ) < 50 // 50 meters
+          ) {
+            console.log(
+              "Location Update",
+              "Location not changed significantly, skipping save."
+            );
+            return;
+          }
 
           const currentTime = new Date();
           // --- Save to location history ---
@@ -166,13 +164,11 @@ const startBackgroundLocation = async (
       accuracy: Location.Accuracy.Highest,
       timeInterval: timer * 1000, // in milliseconds
       distanceInterval: distanceInterval, // in meters
-      deferredUpdatesDistance: 0,
-      deferredUpdatesInterval: 0,
       showsBackgroundLocationIndicator: true,
       mayShowUserSettingsDialog: true,
       foregroundService: {
         notificationTitle: "Location Tracking In Background",
-        notificationBody: `Location will auto save in background`,
+        notificationBody: `Location will auto save in background every ${timer !== 0 ? convertSecondToTime(timer) : convertMeterToDistance(distanceInterval)}`,
         notificationColor: "#fff",
         killServiceOnDestroy: false,
       },

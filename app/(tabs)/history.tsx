@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -36,28 +35,23 @@ export default function HistoryScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "position"}
       style={{ flex: 1 }}
     >
-      <SafeAreaView className="h-full dark:bg-black bg-white border-2 pb-12">
-        <ScrollView className="flex-1 bg-white dark:bg-black p-4 relative">
+      <SafeAreaView className="h-full bg-gray-200">
+        {history.length > 0 ? (
           <FlatList
+            className="p-4"
             data={history}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
-              <View className="mb-4 p-2 rounded bg-sky-100 dark:bg-sky-900">
-                <Text className="dark:text-white">
-                  Latitude: {item.latitude}
-                </Text>
-                <Text className="dark:text-white">
-                  Longitude: {item.longitude}
-                </Text>
+              <View className="mb-4 p-2 rounded bg-sky-900">
+                <Text className="text-white">Latitude: {item.latitude}</Text>
+                <Text className="text-white">Longitude: {item.longitude}</Text>
                 {item.speed !== undefined && (
-                  <Text className="dark:text-white">Speed: {item.speed}</Text>
+                  <Text className="text-white">Speed: {item.speed}</Text>
                 )}
                 {item.heading !== undefined && (
-                  <Text className="dark:text-white">
-                    Heading: {item.heading}
-                  </Text>
+                  <Text className="text-white">Heading: {item.heading}</Text>
                 )}
-                <Text className="text-gray-500">
+                <Text className="text-lime-500">
                   Timestamp:{" "}
                   {item.timestamp
                     ? new Date(item.timestamp).toLocaleString()
@@ -71,27 +65,31 @@ export default function HistoryScreen() {
               </View>
             )}
           />
-        </ScrollView>
+        ) : (
+          <View className="flex-1 items-center justify-center">
+            <Text className="text-gray-500">No history found</Text>
+          </View>
+        )}
         <View
-          className="flex-row flex gap-3 mb-4"
+          className="flex-row flex gap-3 mb-4 px-4"
           style={{ justifyContent: "flex-end" }}
         >
           <TouchableOpacity
             onPress={() => {
               fetchHistory();
             }}
-            className="mt-4 p-2 rounded bg-sky-100 dark:bg-sky-900"
+            className="mt-4 p-2 rounded bg-sky-900"
           >
-            <Text className="dark:text-white">Refresh</Text>
+            <Text className="text-white">Refresh</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
               setHistory([]);
               saveToStorage(LOCATION_HISTORY_KEY, { value: [] }, 0);
             }}
-            className="mt-4 p-2 rounded bg-sky-100 dark:bg-sky-900"
+            className="mt-4 p-2 rounded bg-sky-900"
           >
-            <Text className="dark:text-white">Clear History</Text>
+            <Text className="text-white">Clear History</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

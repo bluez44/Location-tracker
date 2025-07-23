@@ -3,20 +3,26 @@ const convertSecondToTime = (seconds: number) => {
   if (seconds < 3600) {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
+
+    if (remainingSeconds === 0) return `${minutes}m`;
     return `${minutes}m ${remainingSeconds}s`;
   }
 
   const hours = Math.floor(seconds / 3600);
   const remainingMinutes = Math.floor((seconds % 3600) / 60);
   const remainingSeconds = seconds % 60;
+
+  if (remainingMinutes === 0 && remainingSeconds === 0) return `${hours}h`;
+  if (remainingSeconds === 0) return `${hours}h ${remainingMinutes}m`;
+  if (remainingMinutes === 0) return `${hours}h ${remainingSeconds}s`;
   return `${hours}h ${remainingMinutes}m ${remainingSeconds}s`;
 };
 
-const convertMeterToTime = (meter: number) => {
-  if (meter <= 1000) return meter + "m";
-  const kilometer = Math.floor(meter / 1000);
-  const remainingMeter = meter % 1000;
-  return `${kilometer}km ${remainingMeter}m`;
+const convertMeterToDistance = (meter: number) => {
+  if (meter < 1000) return meter + "m";
+  const kilometer = meter / 1000;
+
+  return `${kilometer}km`;
 };
 
-export { convertMeterToTime, convertSecondToTime };
+export { convertMeterToDistance, convertSecondToTime };
