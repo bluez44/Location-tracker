@@ -64,6 +64,12 @@ const initBackgroundLocation = async () => {
               "Location not changed significantly, skipping save."
             );
             return;
+          } else {
+            saveToStorage(
+              LAST_LOCATION_KEY,
+              JSON.stringify(currentLocation),
+              0
+            );
           }
 
           const currentTime = new Date();
