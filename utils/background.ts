@@ -4,12 +4,13 @@ import {
 } from "@/constant/backgroundApp";
 import { VEHICLE_NUMBER } from "@/constant/info";
 import { LAST_LOCATION_KEY, LOCATION_HISTORY_KEY } from "@/constant/location";
+import { HistoryItem } from "@/models/History";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import * as Location from "expo-location";
 import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import { Alert } from "react-native";
-import { calculateDistance, saveLocationInBackground } from "./location";
+import { saveLocationInBackground } from "./location";
 import { schedulePushNotification } from "./notification";
 
 const initBackgroundLocation = async () => {
@@ -48,28 +49,31 @@ const initBackgroundLocation = async () => {
             );
           }
 
-          if (
-            lastSavedLocation &&
-            calculateDistance(
-              lastSavedLocation.latitude,
-              lastSavedLocation.longitude,
-              currentLocation.latitude,
-              currentLocation.longitude
-            ) < 200 // 200 meters
-          ) {
-            console.log(
-              "Location Update",
-              "Location not changed significantly, skipping save."
-            );
-            return;
-          }
+          console.log("last saved location", lastSavedLocation);
+          console.log("current location", currentLocation);
+
+          // if (
+          //   lastSavedLocation &&
+          //   calculateDistance(
+          //     lastSavedLocation.latitude,
+          //     lastSavedLocation.longitude,
+          //     currentLocation.latitude,
+          //     currentLocation.longitude
+          //   ) < 200 // 200 meters
+          // ) {
+          //   console.log(
+          //     "Location Update",
+          //     "Location not changed significantly, skipping save."
+          //   );
+          //   return;
+          // }
 
           const currentTime = new Date();
           // --- Save to location history ---
           try {
             // Load existing history
             const historyRes = await loadFromStorage(LOCATION_HISTORY_KEY);
-            let history = [];
+            let history: HistoryItem[] = [];
             if (historyRes && Array.isArray(historyRes.value)) {
               history = historyRes.value;
             }
@@ -77,9 +81,9 @@ const initBackgroundLocation = async () => {
             history.push({
               latitude: currentLocation.latitude,
               longitude: currentLocation.longitude,
-              timestamp: data.locations[0].timestamp,
               speed: currentLocation.speed,
               heading: currentLocation.heading,
+              timestamp: data.locations[0].timestamp,
               savedTime: currentTime.toString(),
             });
             // Save updated history
