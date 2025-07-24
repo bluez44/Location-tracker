@@ -34,6 +34,12 @@ const initBackgroundLocation = async () => {
 
         if (data) {
           const currentLocation = data.locations[0].coords;
+          const currentTime = new Date();
+
+          console.log(
+            "Background Location Update",
+            `Timestamp: ${currentTime.toISOString()}\n\n\n\n\n\n`
+          );
 
           const lastSavedLocationRes = await loadFromStorage(LAST_LOCATION_KEY);
           let lastSavedLocation;
@@ -42,13 +48,9 @@ const initBackgroundLocation = async () => {
             lastSavedLocationRes.name === LAST_LOCATION_KEY
           ) {
             lastSavedLocation = JSON.parse(lastSavedLocationRes.value);
-          } else {
-            saveToStorage(
-              LAST_LOCATION_KEY,
-              JSON.stringify(currentLocation),
-              0
-            );
           }
+
+          saveToStorage(LAST_LOCATION_KEY, JSON.stringify(currentLocation), 0);
 
           if (
             lastSavedLocation &&
@@ -64,15 +66,8 @@ const initBackgroundLocation = async () => {
               "Location not changed significantly, skipping save."
             );
             return;
-          } else {
-            saveToStorage(
-              LAST_LOCATION_KEY,
-              JSON.stringify(currentLocation),
-              0
-            );
           }
 
-          const currentTime = new Date();
           // --- Save to location history ---
           try {
             // Load existing history
