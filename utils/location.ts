@@ -14,7 +14,6 @@ export const getUserLocation = async () => {
   let errorMessage: string | null = null;
 
   if (await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME)) {
-    console.warn("Location updates are already running.");
     const lastSavedLocationRes = await loadFromStorage(LAST_LOCATION_KEY);
 
     if (

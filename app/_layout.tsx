@@ -4,15 +4,12 @@ import {
   initBackgroundLocation,
   initBackgroundNotification,
 } from "@/utils/background";
-import { useEffect } from "react";
 import "../global.css";
 
-export default function RootLayout() {
-  useEffect(() => {
-    initBackgroundLocation();
-    initBackgroundNotification();
-  });
+initBackgroundLocation();
+initBackgroundNotification();
 
+export default function RootLayout() {
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

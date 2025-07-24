@@ -53,6 +53,7 @@ export default function Layout() {
   return (
     <Tabs
       screenOptions={{
+        headerShown: true,
         headerStyle: {
           backgroundColor: "#3b82f6",
         },

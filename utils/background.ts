@@ -3,7 +3,11 @@ import {
   LOCATION_TASK_NAME,
 } from "@/constant/backgroundApp";
 import { VEHICLE_NUMBER } from "@/constant/info";
-import { LAST_LOCATION_KEY, LOCATION_HISTORY_KEY } from "@/constant/location";
+import {
+  LAST_LOCATION_KEY,
+  LOCATION_HISTORY_KEY,
+  MINIMUM_DISTANCE,
+} from "@/constant/location";
 import { HistoryItem } from "@/models/History";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import * as Location from "expo-location";
@@ -38,7 +42,7 @@ const initBackgroundLocation = async () => {
 
           console.log(
             "Background Location Update",
-            `Timestamp: ${currentTime.toISOString()}\n\n\n\n\n\n`
+            `CurrentTime: ${currentTime.toLocaleTimeString()}, Timestamp: ${new Date(data.locations[0].timestamp).toLocaleTimeString()}`
           );
 
           const lastSavedLocationRes = await loadFromStorage(LAST_LOCATION_KEY);
@@ -59,12 +63,13 @@ const initBackgroundLocation = async () => {
               lastSavedLocation.longitude,
               currentLocation.latitude,
               currentLocation.longitude
-            ) < 50 // 50 meters
+            ) < MINIMUM_DISTANCE
           ) {
             console.log(
               "Location Update",
               "Location not changed significantly, skipping save."
             );
+            console.log("\n");
             return;
           }
 

@@ -1,3 +1,4 @@
+import { LOCATION_TASK_NAME } from "@/constant/backgroundApp";
 import { VEHICLE_NUMBER } from "@/constant/info";
 import {
   DISTANCE_INTERVAL,
@@ -5,15 +6,17 @@ import {
   UPDATE_INTERVAL,
   UPDATE_INTERVAL_KEY,
 } from "@/constant/interval";
+import { MINIMUM_DISTANCE } from "@/constant/location";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import {
   startBackgroundLocation,
   stopBackgroundLocation,
 } from "@/utils/background";
-import { getRegisteredTasks } from "@/utils/taskManager";
+import { getRegisteredTasks, isDefinedTask } from "@/utils/taskManager";
 import { Picker } from "@react-native-picker/picker";
 import React, { useLayoutEffect, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -118,6 +121,17 @@ const config = () => {
 
             <TouchableOpacity
               className="bg-sky-500 p-2 rounded-lg flex items-center justify-center"
+              onPress={() => {
+                const tasks = isDefinedTask(LOCATION_TASK_NAME);
+
+                Alert.alert("Task status", `Is task defined: ${tasks}`);
+              }}
+            >
+              <Text className="text-white">Get defined tasks</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="bg-sky-500 p-2 rounded-lg flex items-center justify-center"
               onPress={clearAlltaskInfor}
             >
               <Text className="text-white">Clear all task infor</Text>
@@ -149,7 +163,8 @@ const config = () => {
           </View>
 
           <View className="bg-white p-4 shadow-lg rounded-md w-full mb-6 gap-2">
-            <Text className="text-xl">Choose update mode</Text>
+            <Text className="text-xl">Background location</Text>
+            <Text className="text-md">Choose update mode</Text>
             <View className="w-full bg-sky-500 rounded-lg">
               <Picker
                 selectedValue={intervalType}
@@ -167,13 +182,18 @@ const config = () => {
 
             {/* Show only the relevant input */}
             {intervalType === "distance" && (
-              <View className="w-full flex flex-row">
+              <View className="w-full flex flex-row items-center gap-2">
                 <TextInput
                   className="flex-1 bg-sky-500 p-2 rounded-lg flex items-center justify-center text-white text-center"
                   onChangeText={(text) => {
                     setDistanceInterval(Number(text) || 0);
                   }}
-                  onEndEditing={() => setIsConfigChanged(true)}
+                  onEndEditing={() => {
+                    if (distanceInterval < 50) {
+                      setDistanceInterval(50);
+                    }
+                    setIsConfigChanged(true);
+                  }}
                   value={distanceInterval.toString() || ""}
                   keyboardType="numeric"
                 />
@@ -209,15 +229,12 @@ const config = () => {
                   setIsConfigChanged(false);
                 }}
               >
-                <Text className="text-white">Save changes</Text>
+                <Text className="text-white">Start background location</Text>
               </TouchableOpacity>
             )}
-          </View>
 
-          <View className="bg-white p-4 shadow-lg rounded-md w-full mb-6 gap-2">
-            <Text className="text-xl">Background location</Text>
             <TouchableOpacity
-              className="bg-sky-500 p-2 rounded-lg flex items-center justify-center"
+              className="bg-red-600 p-2 mt-10 rounded-lg flex items-center justify-center"
               onPress={async () => {
                 await stopBackgroundLocation();
               }}
@@ -226,6 +243,13 @@ const config = () => {
                 Stop background location
               </Text>
             </TouchableOpacity>
+          </View>
+
+          <View className="justify-self-end">
+            <Text className="text-gray-500 text-center">
+              Location will be updated when minimum distance difference is{" "}
+              {MINIMUM_DISTANCE}m
+            </Text>
           </View>
         </ScrollView>
       </SafeAreaView>

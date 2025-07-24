@@ -13,8 +13,8 @@ const registerTask = async (tasks: string) => {
   return status;
 };
 
-const getIsDefinedTask = () => {
-  return TaskManager.isTaskDefined(LOCATION_TASK_NAME);
+const isDefinedTask = (task: string) => {
+  return TaskManager.isTaskDefined(task);
 };
 
 const getRegisteredTasks = async () => {
@@ -42,8 +42,8 @@ const unRegisteredLocationTask = async () => {
 };
 
 export {
-  getIsDefinedTask,
   getRegisteredTasks,
+  isDefinedTask,
   registerTask,
   unRegisteredLocationTask,
 };
