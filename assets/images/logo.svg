@@ -1,0 +1,18 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="200" height="200" rx="20" fill="#4A90E2"/>
+  
+  <!-- Car bottom -->
+  <path
+    d="M80 120C83 112 90 108 100 108C110 108 117 112 120 120H125C131 120 136 125 136 131V137H64V131C64 125 69 120 75 120H80Z"
+    fill="white"
+  />
+  <circle cx="80" cy="138" r="5" fill="#4A90E2"/>
+  <circle cx="120" cy="138" r="5" fill="#4A90E2"/>
+
+  <!-- Pin location -->
+  <path
+    d="M50 66C86 70 88 75 88 82C88 92 100 105 100 105C100 105 112 92 112 82C112 75 107 70 100 70Z"
+    fill="white"
+  />
+  <circle cx="100" cy="82" r="5" fill="#4A90E2"/>
+</svg>
