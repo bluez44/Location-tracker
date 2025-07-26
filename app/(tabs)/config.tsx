@@ -6,7 +6,7 @@ import {
   UPDATE_INTERVAL,
   UPDATE_INTERVAL_KEY,
 } from "@/constant/interval";
-import { MINIMUM_DISTANCE } from "@/constant/location";
+import { MINIMUM_DISTANCE, MINIMUM_TIME } from "@/constant/location";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import {
   startBackgroundLocation,
@@ -222,7 +222,8 @@ const config = () => {
                   // Only one interval is active, the other is 0
                   const dist =
                     intervalType === "distance" ? distanceInterval : 0;
-                  const time = intervalType === "time" ? updateInterval : 0;
+                  const time =
+                    intervalType === "time" ? updateInterval : 0;
                   await startBackgroundLocation(dist, time);
                   saveToStorage(UPDATE_INTERVAL_KEY, time, 0);
                   saveToStorage(DISTANCE_INTERVAL_KEY, dist, 0);

@@ -75,9 +75,7 @@ export default function HistoryScreen() {
           style={{ justifyContent: "flex-end" }}
         >
           <TouchableOpacity
-            onPress={() => {
-              fetchHistory();
-            }}
+            onPress={fetchHistory}
             className="mt-4 p-2 rounded bg-sky-900"
           >
             <Text className="text-white">Refresh</Text>
