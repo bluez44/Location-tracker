@@ -3,11 +3,7 @@ import {
   LOCATION_TASK_NAME,
 } from "@/constant/backgroundApp";
 import { VEHICLE_NUMBER } from "@/constant/info";
-import {
-  LAST_LOCATION_KEY,
-  LOCATION_HISTORY_KEY,
-  MINIMUM_DISTANCE,
-} from "@/constant/location";
+import { LAST_LOCATION_KEY, LOCATION_HISTORY_KEY } from "@/constant/location";
 import { HistoryItem } from "@/models/History";
 import { loadFromStorage, saveToStorage } from "@/storage/ultils";
 import * as Location from "expo-location";
@@ -15,110 +11,123 @@ import * as Notifications from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import { Alert } from "react-native";
 import { convertMeterToDistance, convertSecondToTime } from "./common";
-import { calculateDistance, saveLocationInBackground } from "./location";
+import { saveLocationInBackground } from "./location";
 import { schedulePushNotification } from "./notification";
 
 const initBackgroundLocation = async () => {
-  if (!TaskManager.isTaskDefined(LOCATION_TASK_NAME)) {
-    TaskManager.defineTask(
-      LOCATION_TASK_NAME,
-      async ({
-        data,
-        error,
-      }: {
-        data: {
-          locations: Location.LocationObject[];
-        };
-        error: any;
-      }) => {
-        if (error) {
-          console.error("Background location task error:", error.message);
-          return;
-        }
+  TaskManager.defineTask(
+    LOCATION_TASK_NAME,
+    async ({
+      data,
+      error,
+    }: {
+      data: {
+        locations: Location.LocationObject[];
+      };
+      error: any;
+    }) => {
+      if (error) {
+        console.error("Background location task error:", error.message);
+        return;
+      }
 
-        if (data) {
-          const currentLocation = data.locations[0].coords;
-          const currentTime = new Date();
+      if (data) {
+        const currentLocation = data.locations[0].coords;
+        const currentTime = new Date();
 
-          console.log(
-            "Background Location Update",
-            `CurrentTime: ${currentTime.toLocaleTimeString()}, Timestamp: ${new Date(data.locations[0].timestamp).toLocaleTimeString()}`
-          );
+        // const lastSavedLocationRes = await loadFromStorage(LAST_LOCATION_KEY);
+        // let lastSavedLocation;
+        // if (
+        //   lastSavedLocationRes &&
+        //   lastSavedLocationRes.name === LAST_LOCATION_KEY
+        // ) {
+        //   lastSavedLocation = JSON.parse(lastSavedLocationRes.value);
+        // } else
+        //   saveToStorage(
+        //     LAST_LOCATION_KEY,
+        //     JSON.stringify(currentLocation),
+        //     0
+        //   );
 
-          const lastSavedLocationRes = await loadFromStorage(LAST_LOCATION_KEY);
-          let lastSavedLocation;
-          if (
-            lastSavedLocationRes &&
-            lastSavedLocationRes.name === LAST_LOCATION_KEY
-          ) {
-            lastSavedLocation = JSON.parse(lastSavedLocationRes.value);
+        // const distanceDiff = calculateDistance(
+        //   lastSavedLocation.latitude,
+        //   lastSavedLocation.longitude,
+        //   currentLocation.latitude,
+        //   currentLocation.longitude
+        // ).toFixed(2);
+        // if (lastSavedLocation && distanceDiff < MINIMUM_DISTANCE.toFixed(2)) {
+        //   schedulePushNotification(
+        //     "Location Update",
+        //     `Distance: ${distanceDiff} < ${MINIMUM_DISTANCE} meters`
+        //   );
+        //   console.log(
+        //     `Distance ${distanceDiff} is less than minimum distance ${MINIMUM_DISTANCE}. Not saving location.`
+        //   );
+        //   return;
+        // }
+
+        // --- Save to location history ---
+        try {
+          // Load existing history
+          const historyRes = await loadFromStorage(LOCATION_HISTORY_KEY);
+          let history: HistoryItem[] = [];
+          if (historyRes && Array.isArray(historyRes.value)) {
+            history = historyRes.value;
           }
-
-          saveToStorage(LAST_LOCATION_KEY, JSON.stringify(currentLocation), 0);
-
-          if (
-            lastSavedLocation &&
-            calculateDistance(
-              lastSavedLocation.latitude,
-              lastSavedLocation.longitude,
-              currentLocation.latitude,
-              currentLocation.longitude
-            ) < MINIMUM_DISTANCE
-          ) {
-            console.log(
-              "Location Update",
-              "Location not changed significantly, skipping save."
-            );
-            console.log("\n");
-            return;
-          }
-
-          // --- Save to location history ---
-          try {
-            // Load existing history
-            const historyRes = await loadFromStorage(LOCATION_HISTORY_KEY);
-            let history: HistoryItem[] = [];
-            if (historyRes && Array.isArray(historyRes.value)) {
-              history = historyRes.value;
-            }
-            // Append new location with timestamp
+          // Append new location with timestamp
+          data.locations.map((location) => {
             history.push({
-              latitude: currentLocation.latitude,
-              longitude: currentLocation.longitude,
-              speed: currentLocation.speed,
-              heading: currentLocation.heading,
-              timestamp: data.locations[0].timestamp,
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+              speed: location.coords.speed,
+              heading: location.coords.heading,
+              timestamp: location.timestamp,
               savedTime: currentTime.toString(),
             });
             // Save updated history
             saveToStorage(LOCATION_HISTORY_KEY, history, 0);
-          } catch (e) {
-            console.error("Failed to save location history:", e);
-          }
+            console.log(
+              "Location history updated successfully",
+              currentTime.toTimeString()
+            );
+          });
+        } catch (e) {
+          console.error("Failed to save location history:", e);
+        }
 
-          const res = await loadFromStorage(VEHICLE_NUMBER);
-          let vehicleNumber;
-          if (res.name === VEHICLE_NUMBER) vehicleNumber = res.value;
+        const res = await loadFromStorage(VEHICLE_NUMBER);
+        let vehicleNumber: Number;
+        if (res.name === VEHICLE_NUMBER) vehicleNumber = res.value;
 
-          try {
+        try {
+          data.locations.map(async (location) => {
             const res = await saveLocationInBackground(
-              currentLocation.latitude,
-              currentLocation.longitude,
-              currentLocation.heading,
-              currentLocation.speed,
-              data.locations[0].timestamp,
+              location.coords.latitude,
+              location.coords.longitude,
+              location.coords.heading,
+              location.coords.speed,
+              location.timestamp,
               vehicleNumber
             );
-          } catch (error: any) {
-            console.error(
-              "Failed to update location in background:",
-              error.message
+            saveToStorage(
+              LAST_LOCATION_KEY,
+              JSON.stringify(currentLocation),
+              0
             );
-          }
+            console.log(
+              "Location saved in background successfully",
+              currentTime.toTimeString()
+            );
+          });
+        } catch (error: any) {
+          console.error(
+            "Failed to update location in background:",
+            error.message
+          );
         }
       }
-    );
-  }
+    }
+  );
 };
 
 const initBackgroundNotification = async () => {
@@ -172,6 +181,9 @@ const startBackgroundLocation = async (
       distanceInterval: distanceInterval, // in meters
       showsBackgroundLocationIndicator: true,
       mayShowUserSettingsDialog: true,
+      deferredUpdatesInterval: 0,
+      deferredUpdatesDistance: 0,
+      deferredUpdatesTimeout: 0,
       foregroundService: {
         notificationTitle: "Location Tracking In Background",
         notificationBody: `Location will auto save in background every ${timer !== 0 ? convertSecondToTime(timer) : convertMeterToDistance(distanceInterval)}`,
