@@ -62,7 +62,7 @@ const config = () => {
         value: number;
       } = await loadFromStorage(DISTANCE_INTERVAL_KEY);
       if (distanceInterval.name === DISTANCE_INTERVAL_KEY) {
-        setDistanceInterval(distanceInterval.value);
+        setDistanceInterval(distanceInterval.value || MINIMUM_DISTANCE);
       }
     };
 
@@ -76,7 +76,7 @@ const config = () => {
         value: number;
       } = await loadFromStorage(UPDATE_INTERVAL_KEY);
       if (updateInterval.name === UPDATE_INTERVAL_KEY) {
-        setUpdateInterval(updateInterval.value);
+        setUpdateInterval(updateInterval.value || MINIMUM_TIME);
       }
     };
 
@@ -186,15 +186,15 @@ const config = () => {
                 <TextInput
                   className="flex-1 bg-sky-500 p-2 rounded-lg flex items-center justify-center text-white text-center"
                   onChangeText={(text) => {
-                    setDistanceInterval(Number(text) || 0);
+                    setDistanceInterval(Number(text) || MINIMUM_DISTANCE);
                   }}
                   onEndEditing={() => {
-                    if (distanceInterval < 50) {
-                      setDistanceInterval(50);
+                    if (distanceInterval < MINIMUM_DISTANCE) {
+                      setDistanceInterval(MINIMUM_DISTANCE);
                     }
                     setIsConfigChanged(true);
                   }}
-                  value={distanceInterval.toString() || ""}
+                  value={distanceInterval.toString()}
                   keyboardType="numeric"
                 />
                 <Text className="text-center">meters</Text>
@@ -205,10 +205,17 @@ const config = () => {
                 <TextInput
                   className="flex-1 bg-sky-500 p-2 rounded-lg flex items-center justify-center text-white text-center"
                   onChangeText={(text) => {
-                    setUpdateInterval(parseFloat(Number(text).toFixed(2)) || 0);
+                    setUpdateInterval(
+                      parseFloat(Number(text).toFixed(2)) || MINIMUM_TIME
+                    );
                   }}
-                  onEndEditing={() => setIsConfigChanged(true)}
-                  value={updateInterval.toString() || ""}
+                  onEndEditing={() => {
+                    if (updateInterval < MINIMUM_TIME) {
+                      setUpdateInterval(MINIMUM_TIME);
+                    }
+                    setIsConfigChanged(true);
+                  }}
+                  value={updateInterval.toString()}
                   keyboardType="number-pad"
                 />
                 <Text className="text-center">seconds</Text>
@@ -222,8 +229,7 @@ const config = () => {
                   // Only one interval is active, the other is 0
                   const dist =
                     intervalType === "distance" ? distanceInterval : 0;
-                  const time =
-                    intervalType === "time" ? updateInterval : 0;
+                  const time = intervalType === "time" ? updateInterval : 0;
                   await startBackgroundLocation(dist, time);
                   saveToStorage(UPDATE_INTERVAL_KEY, time, 0);
                   saveToStorage(DISTANCE_INTERVAL_KEY, dist, 0);
@@ -249,7 +255,8 @@ const config = () => {
           <View className="justify-self-end">
             <Text className="text-gray-500 text-center">
               Location will be updated when minimum distance difference is{" "}
-              {MINIMUM_DISTANCE}m
+              {MINIMUM_DISTANCE}m or when minimum time interval is{" "}
+              {MINIMUM_TIME} seconds
             </Text>
           </View>
         </ScrollView>

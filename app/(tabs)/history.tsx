@@ -62,6 +62,11 @@ export default function HistoryScreen() {
                     Saved: {new Date(item.savedTime).toLocaleString()}
                   </Text>
                 )}
+                {(
+                  <Text className="text-yellow-300">
+                    Vehicle Number: {item.vehicleNumber}
+                  </Text>
+                )}
               </View>
             )}
           />

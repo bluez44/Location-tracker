@@ -5,4 +5,5 @@ export type HistoryItem = {
   heading: number | null;
   timestamp: number | undefined;
   savedTime: string | undefined;
+  vehicleNumber: string | undefined;
 };
