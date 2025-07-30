@@ -205,9 +205,7 @@ const config = () => {
                 <TextInput
                   className="flex-1 bg-sky-500 p-2 rounded-lg flex items-center justify-center text-white text-center"
                   onChangeText={(text) => {
-                    setUpdateInterval(
-                      parseFloat(Number(text).toFixed(2))
-                    );
+                    setUpdateInterval(parseFloat(Number(text).toFixed(2)));
                   }}
                   onEndEditing={() => {
                     if (updateInterval < MINIMUM_TIME) {
@@ -229,7 +227,7 @@ const config = () => {
                   // Only one interval is active, the other is 0
                   const dist =
                     intervalType === "distance" ? distanceInterval : 0;
-                  const time = intervalType === "time" ? updateInterval : 0;
+                  const time = intervalType === "time" ? updateInterval : 500;
                   await startBackgroundLocation(dist, time);
                   saveToStorage(UPDATE_INTERVAL_KEY, time, 0);
                   saveToStorage(DISTANCE_INTERVAL_KEY, dist, 0);
