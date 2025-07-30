@@ -186,7 +186,7 @@ const config = () => {
                 <TextInput
                   className="flex-1 bg-sky-500 p-2 rounded-lg flex items-center justify-center text-white text-center"
                   onChangeText={(text) => {
-                    setDistanceInterval(Number(text) || MINIMUM_DISTANCE);
+                    setDistanceInterval(Number(text));
                   }}
                   onEndEditing={() => {
                     if (distanceInterval < MINIMUM_DISTANCE) {
@@ -206,7 +206,7 @@ const config = () => {
                   className="flex-1 bg-sky-500 p-2 rounded-lg flex items-center justify-center text-white text-center"
                   onChangeText={(text) => {
                     setUpdateInterval(
-                      parseFloat(Number(text).toFixed(2)) || MINIMUM_TIME
+                      parseFloat(Number(text).toFixed(2))
                     );
                   }}
                   onEndEditing={() => {
