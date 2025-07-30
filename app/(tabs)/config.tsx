@@ -227,7 +227,7 @@ const config = () => {
                   // Only one interval is active, the other is 0
                   const dist =
                     intervalType === "distance" ? distanceInterval : 0;
-                  const time = intervalType === "time" ? updateInterval : 500;
+                  const time = intervalType === "time" ? updateInterval : 300;
                   await startBackgroundLocation(dist, time);
                   saveToStorage(UPDATE_INTERVAL_KEY, time, 0);
                   saveToStorage(DISTANCE_INTERVAL_KEY, dist, 0);
